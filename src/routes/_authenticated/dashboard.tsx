@@ -28,7 +28,15 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   }),
 });
 
-function Stat({ value, label, accent }: { value: string; label: string; accent?: string }) {
+function Stat({
+  value,
+  label,
+  accent,
+}: {
+  value: string;
+  label: string;
+  accent?: string | undefined;
+}) {
   return (
     <Panel className="px-5 py-4">
       <p className={`text-[28px] leading-none font-extrabold ${accent ?? "text-ink"}`}>{value}</p>
