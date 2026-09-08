@@ -8,7 +8,7 @@ import { AudienceStrip, Hero } from "@/components/landing/Hero";
 import { HowItWorks } from "@/components/landing/HowItWorks";
 import { MagicLink } from "@/components/landing/MagicLink";
 import { Nav } from "@/components/landing/Nav";
-import { PilotForm } from "@/components/landing/PilotForm";
+import { SignUpCta } from "@/components/landing/SignUpCta";
 import { Pricing } from "@/components/landing/Pricing";
 import { Problem } from "@/components/landing/Problem";
 
@@ -46,7 +46,7 @@ function Index() {
         <Features />
         <Comparison />
         <Pricing />
-        <PilotForm />
+        <SignUpCta />
         <FAQ />
       </main>
       <Footer />
