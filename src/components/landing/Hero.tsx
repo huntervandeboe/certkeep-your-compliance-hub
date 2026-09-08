@@ -32,7 +32,7 @@ export function Hero() {
             </p>
           </div>
 
-          <div className="lg:-mr-[9vw] xl:-mr-[6vw]">
+          <div className="lg:-mr-6 xl:-mr-10">
             <DashboardMockup />
           </div>
         </div>
