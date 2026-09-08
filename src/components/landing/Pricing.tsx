@@ -23,8 +23,8 @@ export function Pricing() {
             title="Start small. Stay month to month."
             className="lg:sticky lg:top-28 lg:self-start"
           >
-            One plan while we run the pilot. If your subcontractor list grows past the Starter
-            limit, we will work out the next tier with you directly.
+            One simple plan. If your subcontractor list grows past the Starter limit, we will work
+            out the next tier with you directly.
           </SectionHead>
 
           <Reveal>
@@ -32,7 +32,7 @@ export function Pricing() {
               <div className="flex items-baseline justify-between gap-4">
                 <h3 className="text-[20px] font-extrabold">Starter</h3>
                 <span className="rounded-full bg-brand-soft px-3 py-1 text-[12px] font-bold text-brand-hover">
-                  Pilot plan
+                  Current plan
                 </span>
               </div>
               <p className="mt-6 text-[44px] leading-none font-extrabold text-ink">
@@ -59,7 +59,7 @@ export function Pricing() {
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <p className="mt-4 text-center text-[14px] text-[#6b7280]">
-                14-day free trial planned after the pilot. No annual contract.
+                Month to month. No annual contract.
               </p>
             </div>
           </Reveal>

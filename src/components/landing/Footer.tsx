@@ -66,10 +66,10 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="#pilot"
+                  href="/auth"
                   className="text-[15px] text-[#374151] transition-colors hover:text-brand"
                 >
-                  Contact
+                  Sign up
                 </a>
               </li>
             </ul>
