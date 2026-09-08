@@ -109,9 +109,7 @@ export function AppShell({
           <header className="mb-7 flex flex-wrap items-end justify-between gap-4">
             <div>
               <h1 className="text-[27px] leading-tight sm:text-[31px]">{title}</h1>
-              {subtitle ? (
-                <p className="mt-1.5 text-[15px] text-[#6b7280]">{subtitle}</p>
-              ) : null}
+              {subtitle ? <p className="mt-1.5 text-[15px] text-[#6b7280]">{subtitle}</p> : null}
             </div>
             {actions}
           </header>

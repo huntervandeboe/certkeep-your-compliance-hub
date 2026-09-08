@@ -264,7 +264,11 @@ function SubcontractorDetail() {
                 <Field label="Note to subcontractor" htmlFor="notes" hint="Optional">
                   <textarea id="notes" name="notes" rows={3} className={inputClass} />
                 </Field>
-                <button type="submit" className={`${btn.primary} w-full`} disabled={createReq.isPending}>
+                <button
+                  type="submit"
+                  className={`${btn.primary} w-full`}
+                  disabled={createReq.isPending}
+                >
                   {createReq.isPending ? "Creating..." : "Create secure link"}
                 </button>
               </form>
