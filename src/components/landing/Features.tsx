@@ -1,15 +1,16 @@
-import { BellRing, ClipboardCheck, FileSpreadsheet, History, LayoutList, Layers } from "lucide-react";
+import {
+  BellRing,
+  ClipboardCheck,
+  FileSpreadsheet,
+  History,
+  LayoutList,
+  Layers,
+} from "lucide-react";
 
 import { StatusPill } from "./DashboardMockup";
 import { Card, Container, Reveal, SectionHead } from "./primitives";
 
-function CardHead({
-  icon: Icon,
-  title,
-}: {
-  icon: typeof LayoutList;
-  title: string;
-}) {
+function CardHead({ icon: Icon, title }: { icon: typeof LayoutList; title: string }) {
   return (
     <div className="flex items-start gap-3">
       <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-border bg-background">
@@ -24,11 +25,7 @@ export function Features() {
   return (
     <section id="features" className="bg-background py-[72px] md:py-[112px]">
       <Container>
-        <SectionHead
-          eyebrow="Features"
-          title="Everything you need to keep documents current."
-        />
-
+        <SectionHead eyebrow="Features" title="Everything you need to keep documents current." />
 
         <div className="mt-14 grid gap-5 md:grid-cols-6">
           <Reveal className="md:col-span-4">

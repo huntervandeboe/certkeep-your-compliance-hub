@@ -26,7 +26,6 @@ export function Pricing() {
             limit, we will work out the next tier with you directly.
           </SectionHead>
 
-
           <Reveal>
             <div className="rounded-2xl border border-border bg-surface p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_60px_-40px_rgba(17,24,39,0.55)] sm:p-9">
               <div className="flex items-baseline justify-between gap-4">

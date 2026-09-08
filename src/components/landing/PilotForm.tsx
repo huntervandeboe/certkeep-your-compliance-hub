@@ -263,7 +263,10 @@ export function PilotForm() {
                   </div>
 
                   {formError && (
-                    <p role="alert" className="text-[14px] font-medium text-destructive sm:col-span-2">
+                    <p
+                      role="alert"
+                      className="text-[14px] font-medium text-destructive sm:col-span-2"
+                    >
                       {formError}
                     </p>
                   )}

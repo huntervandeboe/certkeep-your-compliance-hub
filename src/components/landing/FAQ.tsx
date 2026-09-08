@@ -45,7 +45,6 @@ export function FAQ() {
             className="lg:sticky lg:top-28 lg:self-start"
           />
 
-
           <Accordion type="single" collapsible className="w-full">
             {faqs.map((faq, i) => (
               <AccordionItem key={faq.q} value={`item-${i}`} className="border-border">
