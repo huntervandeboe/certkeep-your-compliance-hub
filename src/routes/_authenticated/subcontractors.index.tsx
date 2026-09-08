@@ -27,6 +27,15 @@ export const Route = createFileRoute("/_authenticated/subcontractors/")({
   }),
 });
 
+type SubInput = {
+  company: string;
+  trade: string;
+  project: string;
+  contactName: string;
+  contactEmail: string;
+  contactPhone: string;
+};
+
 function SubcontractorsPage() {
   const qc = useQueryClient();
   const fetchWorkspace = useServerFn(getWorkspace);
@@ -40,7 +49,7 @@ function SubcontractorsPage() {
   });
 
   const mutation = useMutation({
-    mutationFn: (values: Parameters<typeof addSub>[0]["data"]) => addSub({ data: values }),
+    mutationFn: (values: SubInput) => addSub({ data: values }),
     onSuccess: () => {
       setShowForm(false);
       setError("");
