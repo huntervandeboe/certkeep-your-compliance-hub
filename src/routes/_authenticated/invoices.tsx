@@ -4,5 +4,63 @@ import { AppShell } from "@/components/app/AppShell";
 import { SettingsNav } from "@/components/app/SettingsNav";
 import { Panel, btn } from "@/components/app/ui";
 
-export const Route = createFileRoute("/_authenticated/invoices")({ component: InvoicesPage, head:()=>({meta:[{title:"Invoices | CertKeep"},{name:"description",content:"View CertKeep billing history and invoices."},{property:"og:title",content:"Invoices | CertKeep"},{property:"og:description",content:"View CertKeep billing history and invoices."},{property:"og:type",content:"website"},{name:"twitter:card",content:"summary"}]}) });
-function InvoicesPage(){return <AppShell title="Invoices" subtitle="Receipts and billing history"><Panel className="overflow-hidden"><SettingsNav /><div className="grid gap-6 p-6 lg:grid-cols-[minmax(0,1fr)_320px]"><div><div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-xl bg-surface-muted"><ReceiptText className="h-5 w-5 text-ink"/></span><div><h2 className="text-[17px]">No charges have been created</h2><p className="mt-1 text-[11px] text-muted-foreground">Your pilot access has no invoices or receipts.</p></div></div><div className="mt-6 overflow-hidden rounded-xl border border-border"><div className="grid grid-cols-[1fr_120px_100px] bg-surface-muted px-4 py-3 text-[9px] font-bold text-muted-foreground"><span>INVOICE</span><span>DATE</span><span className="text-right">AMOUNT</span></div><div className="flex items-center gap-3 px-4 py-6"><FileText className="h-5 w-5 text-muted-foreground"/><p className="text-[11px] text-muted-foreground">Paid invoices will be available here to view and download.</p></div></div></div><div className="rounded-xl border border-border bg-surface-muted p-5"><p className="text-[10px] font-bold text-muted-foreground">BILLING STATUS</p><p className="mt-2 text-[15px] font-bold text-ink">Pilot access</p><p className="mt-2 text-[11px] leading-5 text-muted-foreground">No payment method, upcoming charge, or invoice is associated with this workspace.</p><Link to="/billing" className={`${btn.ghost} mt-5 w-full`}>View billing</Link></div></div></Panel></AppShell>}
+export const Route = createFileRoute("/_authenticated/invoices")({
+  component: InvoicesPage,
+  head: () => ({
+    meta: [
+      { title: "Invoices | CertKeep" },
+      { name: "description", content: "View CertKeep billing history and invoices." },
+      { property: "og:title", content: "Invoices | CertKeep" },
+      { property: "og:description", content: "View CertKeep billing history and invoices." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
+});
+function InvoicesPage() {
+  return (
+    <AppShell title="Invoices" subtitle="Receipts and billing history">
+      <Panel className="overflow-hidden">
+        <SettingsNav />
+        <div className="grid gap-6 p-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div>
+            <div className="flex items-center gap-3">
+              <span className="grid h-10 w-10 place-items-center rounded-xl bg-surface-muted">
+                <ReceiptText className="h-5 w-5 text-ink" />
+              </span>
+              <div>
+                <h2 className="text-[17px]">No charges have been created</h2>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  Your pilot access has no invoices or receipts.
+                </p>
+              </div>
+            </div>
+            <div className="mt-6 overflow-hidden rounded-xl border border-border">
+              <div className="grid grid-cols-[1fr_120px_100px] bg-surface-muted px-4 py-3 text-[9px] font-bold text-muted-foreground">
+                <span>INVOICE</span>
+                <span>DATE</span>
+                <span className="text-right">AMOUNT</span>
+              </div>
+              <div className="flex items-center gap-3 px-4 py-6">
+                <FileText className="h-5 w-5 text-muted-foreground" />
+                <p className="text-[11px] text-muted-foreground">
+                  Paid invoices will be available here to view and download.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="rounded-xl border border-border bg-surface-muted p-5">
+            <p className="text-[10px] font-bold text-muted-foreground">BILLING STATUS</p>
+            <p className="mt-2 text-[15px] font-bold text-ink">Pilot access</p>
+            <p className="mt-2 text-[11px] leading-5 text-muted-foreground">
+              No payment method, upcoming charge, or invoice is associated with this workspace.
+            </p>
+            <Link to="/billing" className={`${btn.ghost} mt-5 w-full`}>
+              View billing
+            </Link>
+          </div>
+        </div>
+      </Panel>
+    </AppShell>
+  );
+}

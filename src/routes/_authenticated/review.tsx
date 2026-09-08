@@ -99,7 +99,9 @@ function ReviewPage() {
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1.5fr)_340px]">
           <Panel className="overflow-hidden">
             <div className="border-b border-border p-5">
-              <p className="text-[10px] font-bold tracking-[.12em] text-success uppercase">Queue clear</p>
+              <p className="text-[10px] font-bold tracking-[.12em] text-success uppercase">
+                Queue clear
+              </p>
               <h2 className="mt-2 text-[18px]">No submissions need a decision.</h2>
               <p className="mt-1 text-[11px] text-muted-foreground">
                 {awaiting.length
@@ -111,9 +113,16 @@ function ReviewPage() {
               {[
                 ["Awaiting upload", awaiting.length, "Requests still with trade partners"],
                 ["Corrections out", corrections.length, "Files sent back with clear notes"],
-                ["Approved", (data?.requests ?? []).filter((r) => r.status === "approved").length, "Completed review decisions"],
+                [
+                  "Approved",
+                  (data?.requests ?? []).filter((r) => r.status === "approved").length,
+                  "Completed review decisions",
+                ],
               ].map(([label, value, copy]) => (
-                <div key={String(label)} className="rounded-xl border border-border bg-surface-muted p-4">
+                <div
+                  key={String(label)}
+                  className="rounded-xl border border-border bg-surface-muted p-4"
+                >
                   <p className="text-[10px] font-bold text-muted-foreground">{label}</p>
                   <p className="mt-2 text-[24px] font-bold text-ink">{value}</p>
                   <p className="mt-1 text-[9px] leading-4 text-muted-foreground">{copy}</p>
@@ -125,9 +134,14 @@ function ReviewPage() {
             <FileText className="h-6 w-6 text-brand" />
             <h2 className="mt-4 text-[16px]">Keep work moving</h2>
             <p className="mt-2 text-[11px] leading-5 text-muted-foreground">
-              Request missing insurance, licenses, or tax documents from one or several subcontractors.
+              Request missing insurance, licenses, or tax documents from one or several
+              subcontractors.
             </p>
-            <Link to="/subcontractors" search={{ bulk: "request" }} className={`${btn.primary} mt-5 w-full`}>
+            <Link
+              to="/subcontractors"
+              search={{ bulk: "request" }}
+              className={`${btn.primary} mt-5 w-full`}
+            >
               <Send className="h-4 w-4" /> Send requests
             </Link>
           </Panel>

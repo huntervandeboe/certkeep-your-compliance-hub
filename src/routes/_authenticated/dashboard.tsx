@@ -282,7 +282,9 @@ function DashboardPage() {
                   <p className="text-[10px] font-bold tracking-[.12em] text-brand uppercase">
                     Set up today’s queue
                   </p>
-                  <h2 className="mt-3 text-[22px]">Turn your first job into an actionable checklist.</h2>
+                  <h2 className="mt-3 text-[22px]">
+                    Turn your first job into an actionable checklist.
+                  </h2>
                   <p className="mt-2 max-w-[54ch] text-[12px] leading-5 text-muted-foreground">
                     Add an upcoming project and trade partner, then send the first secure request.
                     CertKeep will prioritize every submission, follow-up, and expiration here.
@@ -302,7 +304,10 @@ function DashboardPage() {
                     ["02", "Add trade partners", "Record the people and companies on site."],
                     ["03", "Request documents", "Create secure, account-free upload links."],
                   ].map(([number, title, copy]) => (
-                    <li key={number} className="rounded-xl border border-border bg-surface-muted p-4">
+                    <li
+                      key={number}
+                      className="rounded-xl border border-border bg-surface-muted p-4"
+                    >
                       <span className="text-[10px] font-bold text-brand">{number}</span>
                       <p className="mt-4 text-[12px] font-bold text-ink">{title}</p>
                       <p className="mt-1 text-[10px] leading-4 text-muted-foreground">{copy}</p>
@@ -497,8 +502,13 @@ function DashboardPage() {
                     ))}
                   </div>
                 ) : (
-                  <Link to="/projects" className="flex items-center justify-between px-5 py-5 hover:bg-surface-muted">
-                    <span className="text-[11px] font-semibold text-ink">Plan an upcoming start</span>
+                  <Link
+                    to="/projects"
+                    className="flex items-center justify-between px-5 py-5 hover:bg-surface-muted"
+                  >
+                    <span className="text-[11px] font-semibold text-ink">
+                      Plan an upcoming start
+                    </span>
                     <ArrowRight className="h-4 w-4 text-brand" />
                   </Link>
                 )}
@@ -529,8 +539,14 @@ function DashboardPage() {
                       </div>
                     ))}
                   {!(data?.reminders ?? []).some((r) => r.status === "scheduled") ? (
-                    <Link to="/subcontractors" search={{ bulk: "request" }} className="flex items-center justify-between px-5 py-5 hover:bg-surface-muted">
-                      <span className="text-[11px] font-semibold text-ink">Send a request to schedule follow-up</span>
+                    <Link
+                      to="/subcontractors"
+                      search={{ bulk: "request" }}
+                      className="flex items-center justify-between px-5 py-5 hover:bg-surface-muted"
+                    >
+                      <span className="text-[11px] font-semibold text-ink">
+                        Send a request to schedule follow-up
+                      </span>
                       <ArrowRight className="h-4 w-4 text-brand" />
                     </Link>
                   ) : null}
