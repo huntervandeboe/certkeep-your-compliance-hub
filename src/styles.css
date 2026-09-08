@@ -178,8 +178,15 @@
   h3,
   h4 {
     color: var(--ink);
-    letter-spacing: -0.02em;
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.028em;
   }
+
+  h1 {
+    letter-spacing: -0.038em;
+  }
+
 
   html {
     scroll-behavior: smooth;
