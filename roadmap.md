@@ -6,6 +6,7 @@
 - [x] Build Projects and project detail workflows
 - [x] Upgrade Subcontractors and Documents workflows
 - [ ] Build Reports, Integrations, Team, and Settings pages
+- [x] Add pilot onboarding flow with real, shareable mobile upload links
 - [ ] Improve the public upload experience
 - [x] Verify permissions, routes, desktop/mobile rendering, and key workflow
 - [x] Make the overview a prioritized daily work queue
