@@ -97,6 +97,19 @@ function DashboardPage() {
   const [project, setProject] = useState("all");
   const [issue, setIssue] = useState("all");
   const [mine, setMine] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  async function copyUploadLink(token: string, id: string) {
+    const url = `${window.location.origin}/upload/${token}`;
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      window.prompt("Copy this upload link", url);
+    }
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  }
+
   const reminder = useMutation({
     mutationFn: (id: string) => followUp({ data: { id } }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["command-center"] }),
