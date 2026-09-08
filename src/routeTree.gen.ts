@@ -15,6 +15,8 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedReviewRouteImport } from './routes/_authenticated/review'
+import { Route as UploadTokenRouteImport } from './routes/upload.$token'
 import { Route as AuthenticatedSubcontractorsIndexRouteImport } from './routes/_authenticated/subcontractors.index'
 import { Route as AuthenticatedSubcontractorsIdRouteImport } from './routes/_authenticated/subcontractors.$id'
 
@@ -47,6 +49,16 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedReviewRoute = AuthenticatedReviewRouteImport.update({
+  id: '/review',
+  path: '/review',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const UploadTokenRoute = UploadTokenRouteImport.update({
+  id: '/upload/$token',
+  path: '/upload/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedSubcontractorsIndexRoute =
   AuthenticatedSubcontractorsIndexRouteImport.update({
     id: '/subcontractors/',
@@ -66,6 +78,8 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/review': typeof AuthenticatedReviewRoute
+  '/upload/$token': typeof UploadTokenRoute
   '/subcontractors/$id': typeof AuthenticatedSubcontractorsIdRoute
   '/subcontractors/': typeof AuthenticatedSubcontractorsIndexRoute
 }
@@ -75,6 +89,8 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/review': typeof AuthenticatedReviewRoute
+  '/upload/$token': typeof UploadTokenRoute
   '/subcontractors/$id': typeof AuthenticatedSubcontractorsIdRoute
   '/subcontractors': typeof AuthenticatedSubcontractorsIndexRoute
 }
@@ -86,6 +102,8 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/review': typeof AuthenticatedReviewRoute
+  '/upload/$token': typeof UploadTokenRoute
   '/_authenticated/subcontractors/$id': typeof AuthenticatedSubcontractorsIdRoute
   '/_authenticated/subcontractors/': typeof AuthenticatedSubcontractorsIndexRoute
 }
@@ -97,6 +115,8 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/terms'
     | '/dashboard'
+    | '/review'
+    | '/upload/$token'
     | '/subcontractors/$id'
     | '/subcontractors/'
   fileRoutesByTo: FileRoutesByTo
@@ -106,6 +126,8 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/terms'
     | '/dashboard'
+    | '/review'
+    | '/upload/$token'
     | '/subcontractors/$id'
     | '/subcontractors'
   id:
@@ -116,6 +138,8 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/terms'
     | '/_authenticated/dashboard'
+    | '/_authenticated/review'
+    | '/upload/$token'
     | '/_authenticated/subcontractors/$id'
     | '/_authenticated/subcontractors/'
   fileRoutesById: FileRoutesById
@@ -126,6 +150,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   PrivacyRoute: typeof PrivacyRoute
   TermsRoute: typeof TermsRoute
+  UploadTokenRoute: typeof UploadTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -172,6 +197,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/review': {
+      id: '/_authenticated/review'
+      path: '/review'
+      fullPath: '/review'
+      preLoaderRoute: typeof AuthenticatedReviewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/upload/$token': {
+      id: '/upload/$token'
+      path: '/upload/$token'
+      fullPath: '/upload/$token'
+      preLoaderRoute: typeof UploadTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/subcontractors/': {
       id: '/_authenticated/subcontractors/'
       path: '/subcontractors'
@@ -191,12 +230,14 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedReviewRoute: typeof AuthenticatedReviewRoute
   AuthenticatedSubcontractorsIdRoute: typeof AuthenticatedSubcontractorsIdRoute
   AuthenticatedSubcontractorsIndexRoute: typeof AuthenticatedSubcontractorsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedReviewRoute: AuthenticatedReviewRoute,
   AuthenticatedSubcontractorsIdRoute: AuthenticatedSubcontractorsIdRoute,
   AuthenticatedSubcontractorsIndexRoute: AuthenticatedSubcontractorsIndexRoute,
 }
@@ -210,6 +251,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   PrivacyRoute: PrivacyRoute,
   TermsRoute: TermsRoute,
+  UploadTokenRoute: UploadTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
