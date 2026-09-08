@@ -92,15 +92,20 @@ export const getWorkspace = createServerFn({ method: "GET" })
       });
     }
 
-    const [{ data: subs }, { data: requests }] = await Promise.all([
+    const membership = await ensureWorkspace(context);
+    const [{ data: subs }, { data: requests }, { data: projects }, { data: assignments }] = await Promise.all([
       supabase
         .from("subcontractors")
-        .select("id, company, trade, project, contact_name, contact_email, created_at")
+        .select("id, company, trade, project, contact_name, contact_email, created_at, workspace_id")
+        .eq("workspace_id", membership.workspace_id)
         .order("created_at", { ascending: false }),
       supabase
         .from("document_requests")
-        .select("id, subcontractor_id, doc_type, status, expiration_date, submitted_at, created_at")
+        .select("id, subcontractor_id, doc_type, status, expiration_date, submitted_at, created_at, reviewed_at, due_date, assigned_to_user_id, project_id, requirement_id, last_requested_at, next_reminder_at, rejection_reason, file_path")
+        .eq("workspace_id", membership.workspace_id)
         .order("created_at", { ascending: false }),
+      supabase.from("projects").select("id, name, start_date, end_date, status").eq("workspace_id", membership.workspace_id),
+      supabase.from("project_subcontractors").select("id, project_id, subcontractor_id, planned_start_date").eq("workspace_id", membership.workspace_id),
     ]);
 
     return {
@@ -108,6 +113,9 @@ export const getWorkspace = createServerFn({ method: "GET" })
       profile: profile ?? { full_name: null, company_name: null },
       subcontractors: subs ?? [],
       requests: requests ?? [],
+      projects: projects ?? [],
+      assignments: assignments ?? [],
+      workspace: { id: membership.workspace_id, name: membership.workspaces?.name ?? "My workspace" },
     };
   });
 
@@ -116,7 +124,7 @@ export const getCommandCenter = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const membership = await ensureWorkspace(context);
     const workspaceId = membership.workspace_id;
-    const [{ data: projects }, { data: activity }, { data: requirements }, legacy] =
+    const [{ data: projects }, { data: activity }, { data: requirements }, { data: assignments }, { data: reminders }, { data: members }, legacy] =
       await Promise.all([
         context.supabase
           .from("projects")
@@ -133,16 +141,21 @@ export const getCommandCenter = createServerFn({ method: "GET" })
           .from("compliance_requirements")
           .select("id, project_id, name, document_type, status")
           .eq("workspace_id", workspaceId),
+        context.supabase.from("project_subcontractors").select("id, project_id, subcontractor_id, planned_start_date").eq("workspace_id", workspaceId),
+        context.supabase.from("reminder_events").select("id, document_request_id, recipient_email, status, scheduled_for, sent_at, created_at").eq("workspace_id", workspaceId).order("created_at", { ascending: false }),
+        context.supabase.from("workspace_members").select("user_id, display_name, email, role").eq("workspace_id", workspaceId).eq("status", "active"),
         Promise.all([
           context.supabase
             .from("subcontractors")
-            .select("id, company, trade, project, contact_name, created_at")
+            .select("id, company, trade, project, contact_name, contact_email, created_at")
+            .eq("workspace_id", workspaceId)
             .order("created_at", { ascending: false }),
           context.supabase
             .from("document_requests")
             .select(
-              "id, subcontractor_id, doc_type, status, expiration_date, submitted_at, created_at",
+              "id, subcontractor_id, doc_type, status, expiration_date, submitted_at, reviewed_at, created_at, due_date, assigned_to_user_id, project_id, requirement_id, last_requested_at, next_reminder_at, rejection_reason, file_path",
             )
+            .eq("workspace_id", workspaceId)
             .order("created_at", { ascending: false }),
         ]),
       ]);
@@ -155,6 +168,10 @@ export const getCommandCenter = createServerFn({ method: "GET" })
       },
       projects: projects ?? [],
       requirements: requirements ?? [],
+      assignments: assignments ?? [],
+      reminders: reminders ?? [],
+      members: members ?? [],
+      currentUserId: context.userId,
       activity: activity ?? [],
       subcontractors: legacy[0].data ?? [],
       requests: legacy[1].data ?? [],
@@ -169,6 +186,8 @@ export const createProject = createServerFn({ method: "POST" })
         name: z.string().trim().min(2, "Enter a project name").max(160),
         code: z.string().trim().max(40).optional().default(""),
         location: z.string().trim().max(180).optional().default(""),
+        startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().or(z.literal("")),
+        endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().or(z.literal("")),
       })
       .parse(d),
   )
@@ -182,6 +201,8 @@ export const createProject = createServerFn({ method: "POST" })
         name: data.name,
         code: data.code || null,
         location: data.location || null,
+        start_date: data.startDate || null,
+        end_date: data.endDate || null,
       })
       .select("id")
       .single();
@@ -234,10 +255,12 @@ export const createSubcontractor = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) => subcontractorSchema.parse(d))
   .handler(async ({ data, context }) => {
+    const membership = await ensureWorkspace(context);
     const { data: row, error } = await context.supabase
       .from("subcontractors")
       .insert({
         owner_id: context.userId,
+        workspace_id: membership.workspace_id,
         company: data.company,
         trade: data.trade || null,
         project: data.project || null,
@@ -290,24 +313,101 @@ export const createDocumentRequest = createServerFn({ method: "POST" })
         subcontractorId: z.string().uuid(),
         docType: z.string().trim().min(1, "Choose a document").max(120),
         notes: z.string().trim().max(500).optional().default(""),
+        projectId: z.string().uuid().optional().nullable(),
+        requirementId: z.string().uuid().optional().nullable(),
+        dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable(),
       })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
+    const membership = await ensureWorkspace(context);
+    const now = new Date();
+    const nextReminder = new Date(now.getTime() + 3 * 86400000);
     const { data: row, error } = await context.supabase
       .from("document_requests")
       .insert({
         owner_id: context.userId,
+        workspace_id: membership.workspace_id,
         subcontractor_id: data.subcontractorId,
         doc_type: data.docType,
         notes: data.notes || null,
         token: randomToken(),
+        project_id: data.projectId ?? null,
+        requirement_id: data.requirementId ?? null,
+        due_date: data.dueDate ?? null,
+        assigned_to_user_id: context.userId,
+        last_requested_at: now.toISOString(),
+        next_reminder_at: nextReminder.toISOString(),
       })
       .select("id, token")
       .single();
 
     if (error || !row) throw new Error("Could not create that request.");
+    const { data: sub } = await context.supabase.from("subcontractors").select("company, contact_email").eq("id", data.subcontractorId).single();
+    if (sub?.contact_email) {
+      await context.supabase.from("reminder_events").insert({ workspace_id: membership.workspace_id, document_request_id: row.id, recipient_email: sub.contact_email, status: "scheduled", scheduled_for: nextReminder.toISOString(), created_by: context.userId });
+    }
+    await context.supabase.from("activity_events").insert({ workspace_id: membership.workspace_id, actor_user_id: context.userId, event_type: "request.sent", entity_type: "document_request", entity_id: row.id, title: `Requested ${data.docType} from ${sub?.company ?? "subcontractor"}`, detail: "Secure upload link created" });
     return { id: row.id, token: row.token };
+  });
+
+export const bulkCreateDocumentRequests = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ subcontractorIds: z.array(z.string().uuid()).min(1).max(100), docType: z.string().trim().min(1).max(120), projectId: z.string().uuid().optional().nullable(), dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const membership = await ensureWorkspace(context);
+    const { data: subs } = await context.supabase.from("subcontractors").select("id, company, contact_email").eq("workspace_id", membership.workspace_id).in("id", data.subcontractorIds);
+    if (!subs?.length) throw new Error("Select at least one subcontractor in this workspace.");
+    const now = new Date();
+    const nextReminder = new Date(now.getTime() + 3 * 86400000);
+    const rows = subs.map((sub) => ({ owner_id: context.userId, workspace_id: membership.workspace_id, subcontractor_id: sub.id, doc_type: data.docType, token: randomToken(), project_id: data.projectId ?? null, due_date: data.dueDate ?? null, assigned_to_user_id: context.userId, last_requested_at: now.toISOString(), next_reminder_at: nextReminder.toISOString() }));
+    const { data: created, error } = await context.supabase.from("document_requests").insert(rows).select("id, subcontractor_id, token");
+    if (error || !created) throw new Error("Could not create those requests.");
+    const reminders = created.flatMap((request) => {
+      const sub = subs.find((item) => item.id === request.subcontractor_id);
+      return sub?.contact_email ? [{ workspace_id: membership.workspace_id, document_request_id: request.id, recipient_email: sub.contact_email, status: "scheduled", scheduled_for: nextReminder.toISOString(), created_by: context.userId }] : [];
+    });
+    if (reminders.length) await context.supabase.from("reminder_events").insert(reminders);
+    await context.supabase.from("activity_events").insert({ workspace_id: membership.workspace_id, actor_user_id: context.userId, event_type: "request.bulk_sent", entity_type: "document_request", title: `${created.length} document requests created`, detail: data.docType });
+    return { created: created.length, links: created.map((item) => ({ subcontractorId: item.subcontractor_id, token: item.token })) };
+  });
+
+export const sendRequestFollowUp = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const membership = await ensureWorkspace(context);
+    const { data: request } = await context.supabase.from("document_requests").select("id, doc_type, subcontractor_id").eq("id", data.id).eq("workspace_id", membership.workspace_id).single();
+    if (!request) throw new Error("Request not found.");
+    const { data: sub } = await context.supabase.from("subcontractors").select("company, contact_email").eq("id", request.subcontractor_id).single();
+    const now = new Date();
+    const next = new Date(now.getTime() + 3 * 86400000);
+    const { error } = await context.supabase.from("document_requests").update({ last_requested_at: now.toISOString(), next_reminder_at: next.toISOString() }).eq("id", data.id);
+    if (error) throw new Error("Could not record that follow-up.");
+    if (sub?.contact_email) await context.supabase.from("reminder_events").insert({ workspace_id: membership.workspace_id, document_request_id: data.id, recipient_email: sub.contact_email, status: "scheduled", scheduled_for: next.toISOString(), created_by: context.userId });
+    await context.supabase.from("activity_events").insert({ workspace_id: membership.workspace_id, actor_user_id: context.userId, event_type: "request.follow_up", entity_type: "document_request", entity_id: data.id, title: `Follow-up recorded for ${sub?.company ?? "subcontractor"}`, detail: `${request.doc_type} remains outstanding` });
+    return { ok: true as const };
+  });
+
+export const assignSubcontractorsToProject = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ subcontractorIds: z.array(z.string().uuid()).min(1).max(100), projectId: z.string().uuid(), plannedStartDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const membership = await ensureWorkspace(context);
+    const rows = data.subcontractorIds.map((id) => ({ workspace_id: membership.workspace_id, project_id: data.projectId, subcontractor_id: id, planned_start_date: data.plannedStartDate ?? null }));
+    const { error } = await context.supabase.from("project_subcontractors").upsert(rows, { onConflict: "project_id,subcontractor_id" });
+    if (error) throw new Error("Could not assign those subcontractors.");
+    return { ok: true as const };
+  });
+
+export const createRequirement = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) => z.object({ projectId: z.string().uuid(), name: z.string().trim().min(2).max(160), documentType: z.string().trim().min(1).max(120), trade: z.string().trim().max(80).optional().default("") }).parse(d))
+  .handler(async ({ data, context }) => {
+    const membership = await ensureWorkspace(context);
+    const { error } = await context.supabase.from("compliance_requirements").insert({ workspace_id: membership.workspace_id, project_id: data.projectId, name: data.name, document_type: data.documentType, trade: data.trade || null });
+    if (error) throw new Error("Could not add that requirement.");
+    return { ok: true as const };
   });
 
 export const reviewDocumentRequest = createServerFn({ method: "POST" })
@@ -322,6 +422,8 @@ export const reviewDocumentRequest = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
+    const membership = await ensureWorkspace(context);
+    const { data: before } = await context.supabase.from("document_requests").select("doc_type, subcontractor_id").eq("id", data.id).single();
     const { error } = await context.supabase
       .from("document_requests")
       .update({
@@ -333,6 +435,10 @@ export const reviewDocumentRequest = createServerFn({ method: "POST" })
       .eq("status", "submitted");
 
     if (error) throw new Error("Could not save that decision.");
+    if (before) {
+      const { data: sub } = await context.supabase.from("subcontractors").select("company").eq("id", before.subcontractor_id).single();
+      await context.supabase.from("activity_events").insert({ workspace_id: membership.workspace_id, actor_user_id: context.userId, event_type: `document.${data.action === "approve" ? "approved" : "correction_requested"}`, entity_type: "document_request", entity_id: data.id, title: `${before.doc_type} ${data.action === "approve" ? "approved" : "sent back for correction"}`, detail: sub?.company ?? null });
+    }
     return { ok: true as const };
   });
 
