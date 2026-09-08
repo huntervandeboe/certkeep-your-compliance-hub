@@ -1,11 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Check, ChevronRight, FileText, RotateCcw, Send, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { AppShell } from "@/components/app/AppShell";
-import { EmptyState, Panel, StatusBadge, btn, inputClass } from "@/components/app/ui";
+import { Panel, StatusBadge, btn, inputClass } from "@/components/app/ui";
 import { getCommandCenter, getDocumentUrl, reviewDocumentRequest } from "@/lib/app.functions";
 
 export const Route = createFileRoute("/_authenticated/review")({
@@ -42,6 +42,8 @@ function ReviewPage() {
     () => (data?.requests ?? []).filter((r) => r.status === "submitted"),
     [data],
   );
+  const awaiting = (data?.requests ?? []).filter((r) => r.status === "pending");
+  const corrections = (data?.requests ?? []).filter((r) => r.status === "rejected");
   const [selectedId, setSelectedId] = useState(search.document);
   const [documentUrl, setDocumentUrl] = useState("");
   const [reason, setReason] = useState("");
@@ -94,12 +96,56 @@ function ReviewPage() {
       {isLoading ? (
         <p className="text-[12px] text-muted-foreground">Loading review queue…</p>
       ) : !selected ? (
-        <Panel>
-          <EmptyState
-            title="Review queue complete"
-            body="New submissions will appear here with their project requirements and document details."
-          />
-        </Panel>
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1.5fr)_340px]">
+          <Panel className="overflow-hidden">
+            <div className="border-b border-border p-5">
+              <p className="text-[10px] font-bold tracking-[.12em] text-success uppercase">
+                Queue clear
+              </p>
+              <h2 className="mt-2 text-[18px]">No submissions need a decision.</h2>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                {awaiting.length
+                  ? `${awaiting.length} secure request${awaiting.length === 1 ? " is" : "s are"} still awaiting upload.`
+                  : "Send a secure request and each upload will arrive here beside its requirement."}
+              </p>
+            </div>
+            <div className="grid gap-3 p-5 sm:grid-cols-3">
+              {[
+                ["Awaiting upload", awaiting.length, "Requests still with trade partners"],
+                ["Corrections out", corrections.length, "Files sent back with clear notes"],
+                [
+                  "Approved",
+                  (data?.requests ?? []).filter((r) => r.status === "approved").length,
+                  "Completed review decisions",
+                ],
+              ].map(([label, value, copy]) => (
+                <div
+                  key={String(label)}
+                  className="rounded-xl border border-border bg-surface-muted p-4"
+                >
+                  <p className="text-[10px] font-bold text-muted-foreground">{label}</p>
+                  <p className="mt-2 text-[24px] font-bold text-ink">{value}</p>
+                  <p className="mt-1 text-[9px] leading-4 text-muted-foreground">{copy}</p>
+                </div>
+              ))}
+            </div>
+          </Panel>
+          <Panel className="p-5">
+            <FileText className="h-6 w-6 text-brand" />
+            <h2 className="mt-4 text-[16px]">Keep work moving</h2>
+            <p className="mt-2 text-[11px] leading-5 text-muted-foreground">
+              Request missing insurance, licenses, or tax documents from one or several
+              subcontractors.
+            </p>
+            <Link
+              to="/subcontractors"
+              search={{ bulk: "request" }}
+              className={`${btn.primary} mt-5 w-full`}
+            >
+              <Send className="h-4 w-4" /> Send requests
+            </Link>
+          </Panel>
+        </div>
       ) : (
         <div className="grid min-h-[660px] overflow-hidden rounded-[18px] border border-border bg-surface shadow-sm xl:grid-cols-[280px_minmax(360px,1fr)_320px]">
           <aside className="border-b border-border xl:border-b-0 xl:border-r">

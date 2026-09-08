@@ -1,4 +1,5 @@
-import { Check } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { ArrowRight, Check } from "lucide-react";
 
 import { Container, Reveal, SectionHead, buttonStyles } from "./primitives";
 
@@ -53,9 +54,10 @@ export function Pricing() {
                 ))}
               </ul>
 
-              <a href="#pilot" className={buttonStyles.primary + " mt-8 w-full"}>
-                Join the 30-Day Pilot
-              </a>
+              <Link to="/pricing" className={buttonStyles.primary + " mt-8 w-full"}>
+                View Starter plan
+                <ArrowRight className="h-4 w-4" />
+              </Link>
               <p className="mt-4 text-center text-[14px] text-[#6b7280]">
                 14-day free trial planned after the pilot. No annual contract.
               </p>

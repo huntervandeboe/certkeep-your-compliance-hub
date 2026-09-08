@@ -1,0 +1,102 @@
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Check, CreditCard, ShieldCheck } from "lucide-react";
+import { AppShell } from "@/components/app/AppShell";
+import { SettingsNav } from "@/components/app/SettingsNav";
+import { Panel, btn } from "@/components/app/ui";
+
+export const Route = createFileRoute("/_authenticated/billing")({
+  component: BillingPage,
+  head: () => ({
+    meta: [
+      { title: "Billing | CertKeep" },
+      { name: "description", content: "Manage your CertKeep plan and billing details." },
+      { property: "og:title", content: "Billing | CertKeep" },
+      { property: "og:description", content: "Manage your CertKeep plan and billing details." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
+});
+
+function BillingPage() {
+  const features = [
+    "25 active subcontractors",
+    "Unlimited secure upload links",
+    "Project readiness and reminders",
+    "Document review workflow",
+  ];
+  return (
+    <AppShell title="Billing" subtitle="Plan, payment, and usage">
+      <div className="space-y-5">
+        <Panel className="overflow-hidden">
+          <SettingsNav />
+          <div className="grid gap-6 p-6 lg:grid-cols-[minmax(0,1fr)_330px]">
+            <div>
+              <div className="flex flex-wrap items-center gap-3">
+                <h2 className="text-[18px]">Pilot access</h2>
+                <span className="rounded-full bg-success-soft px-2.5 py-1 text-[10px] font-bold text-success">
+                  Active
+                </span>
+              </div>
+              <p className="mt-2 max-w-[60ch] text-[12px] leading-5 text-muted-foreground">
+                Your workspace currently has pilot access. No payment method is stored and no
+                automatic charge is scheduled.
+              </p>
+              <div className="mt-6 grid gap-3 sm:grid-cols-2">
+                {features.map((f) => (
+                  <div
+                    key={f}
+                    className="flex items-center gap-2 text-[12px] font-semibold text-ink"
+                  >
+                    <Check className="h-4 w-4 text-success" />
+                    {f}
+                  </div>
+                ))}
+              </div>
+              <div className="mt-7 flex flex-wrap gap-2">
+                <button className={btn.primary} disabled>
+                  <CreditCard className="h-4 w-4" />
+                  Checkout not enabled
+                </button>
+                <Link to="/pricing" className={btn.ghost}>
+                  Compare plan details
+                </Link>
+              </div>
+            </div>
+            <div className="rounded-xl border border-border bg-surface-muted p-5">
+              <p className="text-[10px] font-bold tracking-[.1em] text-muted-foreground uppercase">
+                Starter
+              </p>
+              <p className="mt-3 text-[34px] font-bold text-ink">
+                $49<span className="text-[13px] text-muted-foreground"> / month</span>
+              </p>
+              <p className="mt-2 text-[11px] leading-5 text-muted-foreground">
+                For up to 25 active subcontractors. Month to month.
+              </p>
+              <div className="mt-5 flex gap-2 border-t border-border pt-4">
+                <ShieldCheck className="h-4 w-4 shrink-0 text-brand" />
+                <p className="text-[10px] leading-4 text-muted-foreground">
+                  Payment setup will be added only when you choose to activate checkout.
+                </p>
+              </div>
+            </div>
+          </div>
+        </Panel>
+        <Panel className="grid gap-5 p-6 md:grid-cols-3">
+          <div>
+            <p className="text-[10px] font-bold text-muted-foreground">PAYMENT METHOD</p>
+            <p className="mt-2 text-[13px] font-bold">None on file</p>
+          </div>
+          <div>
+            <p className="text-[10px] font-bold text-muted-foreground">NEXT BILLING DATE</p>
+            <p className="mt-2 text-[13px] font-bold">Not scheduled</p>
+          </div>
+          <div>
+            <p className="text-[10px] font-bold text-muted-foreground">BILLING EMAIL</p>
+            <p className="mt-2 text-[13px] font-bold">Added when checkout is enabled</p>
+          </div>
+        </Panel>
+      </div>
+    </AppShell>
+  );
+}

@@ -10,7 +10,7 @@ import { Container, buttonStyles } from "./primitives";
 const links = [
   { label: "How it works", href: "#how-it-works" },
   { label: "Features", href: "#features" },
-  { label: "Pricing", href: "#pricing" },
+  { label: "Pricing", href: "/pricing" },
   { label: "Security", href: "#security" },
   { label: "FAQ", href: "#faq" },
 ];

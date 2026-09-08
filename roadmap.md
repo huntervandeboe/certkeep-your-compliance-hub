@@ -12,3 +12,6 @@
 - [x] Add fast side-by-side document review with next-task flow
 - [x] Add bulk document requests and subcontractor bulk actions
 - [x] Add upcoming-start project readiness and follow-up tracking
+- [x] Replace first-use empty states with guided project, subcontractor, and request actions
+- [x] Add public Starter pricing plus account, billing, and invoice pages
+- [ ] Enable checkout when the owner is ready to activate payments
