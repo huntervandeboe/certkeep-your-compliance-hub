@@ -581,18 +581,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      has_workspace_role: {
-        Args: {
-          _roles: Database["public"]["Enums"]["workspace_role"][]
-          _user_id?: string
-          _workspace_id: string
-        }
-        Returns: boolean
-      }
-      is_workspace_member: {
-        Args: { _user_id?: string; _workspace_id: string }
-        Returns: boolean
-      }
+      [_ in never]: never
     }
     Enums: {
       doc_status: "pending" | "submitted" | "approved" | "rejected"
