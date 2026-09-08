@@ -1,7 +1,7 @@
 import { BellRing, ClipboardCheck, FileSpreadsheet, History, LayoutList, Layers } from "lucide-react";
 
 import { StatusPill } from "./DashboardMockup";
-import { Card, Container, Eyebrow, Reveal } from "./primitives";
+import { Card, Container, Reveal, SectionHead } from "./primitives";
 
 function CardHead({
   icon: Icon,
