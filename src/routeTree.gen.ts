@@ -18,6 +18,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedProjectsRouteImport } from './routes/_authenticated/projects'
 import { Route as AuthenticatedReviewRouteImport } from './routes/_authenticated/review'
 import { Route as UploadTokenRouteImport } from './routes/upload.$token'
+import { Route as AuthenticatedProjectsIdRouteImport } from './routes/_authenticated/projects.$id'
 import { Route as AuthenticatedSubcontractorsIndexRouteImport } from './routes/_authenticated/subcontractors.index'
 import { Route as AuthenticatedSubcontractorsIdRouteImport } from './routes/_authenticated/subcontractors.$id'
 
@@ -65,6 +66,11 @@ const UploadTokenRoute = UploadTokenRouteImport.update({
   path: '/upload/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedProjectsIdRoute = AuthenticatedProjectsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => AuthenticatedProjectsRoute,
+} as any)
 const AuthenticatedSubcontractorsIndexRoute =
   AuthenticatedSubcontractorsIndexRouteImport.update({
     id: '/subcontractors/',
@@ -84,9 +90,10 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/projects': typeof AuthenticatedProjectsRoute
+  '/projects': typeof AuthenticatedProjectsRouteWithChildren
   '/review': typeof AuthenticatedReviewRoute
   '/upload/$token': typeof UploadTokenRoute
+  '/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/subcontractors/$id': typeof AuthenticatedSubcontractorsIdRoute
   '/subcontractors/': typeof AuthenticatedSubcontractorsIndexRoute
 }
@@ -96,9 +103,10 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/projects': typeof AuthenticatedProjectsRoute
+  '/projects': typeof AuthenticatedProjectsRouteWithChildren
   '/review': typeof AuthenticatedReviewRoute
   '/upload/$token': typeof UploadTokenRoute
+  '/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/subcontractors/$id': typeof AuthenticatedSubcontractorsIdRoute
   '/subcontractors': typeof AuthenticatedSubcontractorsIndexRoute
 }
@@ -110,9 +118,10 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/_authenticated/projects': typeof AuthenticatedProjectsRoute
+  '/_authenticated/projects': typeof AuthenticatedProjectsRouteWithChildren
   '/_authenticated/review': typeof AuthenticatedReviewRoute
   '/upload/$token': typeof UploadTokenRoute
+  '/_authenticated/projects/$id': typeof AuthenticatedProjectsIdRoute
   '/_authenticated/subcontractors/$id': typeof AuthenticatedSubcontractorsIdRoute
   '/_authenticated/subcontractors/': typeof AuthenticatedSubcontractorsIndexRoute
 }
@@ -127,6 +136,7 @@ export interface FileRouteTypes {
     | '/projects'
     | '/review'
     | '/upload/$token'
+    | '/projects/$id'
     | '/subcontractors/$id'
     | '/subcontractors/'
   fileRoutesByTo: FileRoutesByTo
@@ -139,6 +149,7 @@ export interface FileRouteTypes {
     | '/projects'
     | '/review'
     | '/upload/$token'
+    | '/projects/$id'
     | '/subcontractors/$id'
     | '/subcontractors'
   id:
@@ -152,6 +163,7 @@ export interface FileRouteTypes {
     | '/_authenticated/projects'
     | '/_authenticated/review'
     | '/upload/$token'
+    | '/_authenticated/projects/$id'
     | '/_authenticated/subcontractors/$id'
     | '/_authenticated/subcontractors/'
   fileRoutesById: FileRoutesById
@@ -230,6 +242,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UploadTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/projects/$id': {
+      id: '/_authenticated/projects/$id'
+      path: '/$id'
+      fullPath: '/projects/$id'
+      preLoaderRoute: typeof AuthenticatedProjectsIdRouteImport
+      parentRoute: typeof AuthenticatedProjectsRoute
+    }
     '/_authenticated/subcontractors/': {
       id: '/_authenticated/subcontractors/'
       path: '/subcontractors'
@@ -247,9 +266,22 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedProjectsRouteChildren {
+  AuthenticatedProjectsIdRoute: typeof AuthenticatedProjectsIdRoute
+}
+
+const AuthenticatedProjectsRouteChildren: AuthenticatedProjectsRouteChildren = {
+  AuthenticatedProjectsIdRoute: AuthenticatedProjectsIdRoute,
+}
+
+const AuthenticatedProjectsRouteWithChildren =
+  AuthenticatedProjectsRoute._addFileChildren(
+    AuthenticatedProjectsRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedProjectsRoute: typeof AuthenticatedProjectsRoute
+  AuthenticatedProjectsRoute: typeof AuthenticatedProjectsRouteWithChildren
   AuthenticatedReviewRoute: typeof AuthenticatedReviewRoute
   AuthenticatedSubcontractorsIdRoute: typeof AuthenticatedSubcontractorsIdRoute
   AuthenticatedSubcontractorsIndexRoute: typeof AuthenticatedSubcontractorsIndexRoute
@@ -257,7 +289,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
-  AuthenticatedProjectsRoute: AuthenticatedProjectsRoute,
+  AuthenticatedProjectsRoute: AuthenticatedProjectsRouteWithChildren,
   AuthenticatedReviewRoute: AuthenticatedReviewRoute,
   AuthenticatedSubcontractorsIdRoute: AuthenticatedSubcontractorsIdRoute,
   AuthenticatedSubcontractorsIndexRoute: AuthenticatedSubcontractorsIndexRoute,
