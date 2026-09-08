@@ -38,7 +38,7 @@ export function AppShell({
     <div className="min-h-screen bg-app-canvas px-0 py-0 sm:px-6 sm:py-8 lg:px-10 lg:py-10">
       <div className="mx-auto min-h-screen w-full max-w-[1240px] overflow-hidden bg-surface sm:min-h-0 sm:rounded-[26px] sm:shadow-[0_28px_70px_-40px_rgba(17,24,39,0.35)]">
         {/* Top bar */}
-        <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-b border-border px-4 py-3.5 sm:px-6">
+        <header className="flex items-center justify-between gap-4 border-b border-border px-4 py-3.5 sm:px-6">
           <Link to="/" className="flex min-w-0 items-center gap-2.5 text-ink">
             <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-ink text-white">
               <LogoMark className="h-4 w-4" />
