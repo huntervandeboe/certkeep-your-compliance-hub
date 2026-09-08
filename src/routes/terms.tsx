@@ -8,12 +8,12 @@ export const Route = createFileRoute("/terms")({
       { title: "Terms | CertKeep" },
       {
         name: "description",
-        content: "CertKeep's terms of service are being prepared ahead of the pilot release.",
+        content: "CertKeep's terms of service are being prepared ahead of general release.",
       },
       { property: "og:title", content: "Terms | CertKeep" },
       {
         property: "og:description",
-        content: "CertKeep's terms of service are being prepared ahead of the pilot release.",
+        content: "CertKeep's terms of service are being prepared ahead of general release.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -30,10 +30,9 @@ function TermsPage() {
         generally available.
       </p>
       <p>
-        Pilot participation is voluntary, month to month, and carries no contract or obligation.
-        CertKeep is a document workflow and tracking tool. It is not an insurance, legal, or
-        regulatory adviser, and it does not determine whether coverage or requirements are
-        acceptable.
+        Accounts are month to month and carry no long-term contract or obligation. CertKeep is a
+        document workflow and tracking tool. It is not an insurance, legal, or regulatory adviser,
+        and it does not determine whether coverage or requirements are acceptable.
       </p>
       <p>
         <Link to="/" className="font-semibold text-brand hover:text-brand-hover">

@@ -174,7 +174,7 @@ function AuthPage() {
           <span className="h-1 w-1 rounded-full bg-white/25" aria-hidden />
           <span>Expiration tracking</span>
           <span className="h-1 w-1 rounded-full bg-white/25" aria-hidden />
-          <span>Pilot release</span>
+          <span>Early release</span>
         </div>
       </div>
 

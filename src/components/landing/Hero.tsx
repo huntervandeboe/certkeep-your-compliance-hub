@@ -20,8 +20,8 @@ export function Hero() {
               account. You approve the document, and CertKeep tracks every expiration.
             </p>
             <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-              <a href="#pilot" className={buttonStyles.primary}>
-                Join the 30-Day Pilot
+              <a href="/auth" className={buttonStyles.primary}>
+                Create your account
               </a>
               <a href="#how-it-works" className={buttonStyles.secondary}>
                 See how it works

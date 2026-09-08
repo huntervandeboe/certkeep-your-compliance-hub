@@ -68,8 +68,8 @@ export function Nav() {
             >
               Log in
             </a>
-            <a href="#pilot" className={buttonStyles.primary + " py-2.5"}>
-              Join the Pilot
+            <a href="/auth" className={buttonStyles.primary + " py-2.5"}>
+              Sign up
             </a>
           </div>
 
@@ -107,11 +107,11 @@ export function Nav() {
             </ul>
             <div className="mt-6 flex flex-col gap-3">
               <a
-                href="#pilot"
+                href="/auth"
                 onClick={() => setOpen(false)}
                 className={buttonStyles.primary + " w-full"}
               >
-                Join the Pilot
+                Sign up
               </a>
               <a
                 href="/auth"

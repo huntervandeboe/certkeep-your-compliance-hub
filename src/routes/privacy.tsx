@@ -8,12 +8,12 @@ export const Route = createFileRoute("/privacy")({
       { title: "Privacy | CertKeep" },
       {
         name: "description",
-        content: "CertKeep's privacy policy is being prepared ahead of the pilot release.",
+        content: "CertKeep's privacy policy is being prepared ahead of general release.",
       },
       { property: "og:title", content: "Privacy | CertKeep" },
       {
         property: "og:description",
-        content: "CertKeep's privacy policy is being prepared ahead of the pilot release.",
+        content: "CertKeep's privacy policy is being prepared ahead of general release.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -30,12 +30,12 @@ function PrivacyPage() {
         generally available.
       </p>
       <p>
-        Today, the only information we collect is what you choose to send through the pilot
-        application form. We use it to contact you about the pilot. We do not sell it and we do not
+        Today, the only information we collect is what you provide when you create an account and
+        use CertKeep. We use it to run the service and support you. We do not sell it and we do not
         share it with advertisers.
       </p>
       <p>
-        If you would like your application information removed, ask us and we will delete it.{" "}
+        If you would like your account information removed, ask us and we will delete it.{" "}
         <Link to="/" className="font-semibold text-brand hover:text-brand-hover">
           Return to the homepage
         </Link>
