@@ -32,90 +32,95 @@ export function AppShell({
     navigate({ to: "/auth" });
   }
 
-  const links = (
-    <nav className="space-y-1">
-      {nav.map((item) => {
-        const active = path === item.to || path.startsWith(item.to + "/");
-        return (
-          <Link
-            key={item.to}
-            to={item.to}
-            onClick={() => setOpen(false)}
-            className={cn(
-              "flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-semibold transition-colors",
-              active
-                ? "bg-white/10 text-white"
-                : "text-white/55 hover:bg-white/5 hover:text-white/90",
-            )}
-          >
-            <item.icon className="h-[18px] w-[18px]" />
-            {item.label}
-          </Link>
-        );
-      })}
-    </nav>
-  );
+  const isActive = (to: string) => path === to || path.startsWith(to + "/");
 
   return (
-    <div className="min-h-screen bg-background lg:flex">
-      <aside className="sticky top-0 hidden h-screen w-[248px] shrink-0 flex-col justify-between bg-ink p-5 lg:flex">
-        <div>
-          <Link to="/" className="mb-8 flex items-center gap-2.5 px-2 text-white">
-            <LogoMark className="h-6 w-6" />
-            <span className="font-display text-[17px] font-bold">CertKeep</span>
+    <div className="min-h-screen bg-app-canvas px-0 py-0 sm:px-6 sm:py-8 lg:px-10 lg:py-10">
+      <div className="mx-auto min-h-screen w-full max-w-[1240px] overflow-hidden bg-surface sm:min-h-0 sm:rounded-[26px] sm:shadow-[0_28px_70px_-40px_rgba(17,24,39,0.35)]">
+        {/* Top bar */}
+        <header className="flex items-center justify-between gap-4 border-b border-border px-4 py-3.5 sm:px-6">
+          <Link to="/" className="flex min-w-0 items-center gap-2.5 text-ink">
+            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-ink text-white">
+              <LogoMark className="h-4 w-4" />
+            </span>
+            <span className="truncate font-display text-[16px] font-bold">CertKeep</span>
           </Link>
-          {links}
-        </div>
-        <button
-          type="button"
-          onClick={signOut}
-          className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-semibold text-white/55 transition-colors hover:bg-white/5 hover:text-white/90"
-        >
-          <LogOut className="h-[18px] w-[18px]" />
-          Sign out
-        </button>
-      </aside>
 
-      <div className="flex items-center justify-between border-b border-border bg-ink px-4 py-3 lg:hidden">
-        <Link to="/" className="flex items-center gap-2.5 text-white">
-          <LogoMark className="h-5 w-5" />
-          <span className="font-display text-[16px] font-bold">CertKeep</span>
-        </Link>
-        <button
-          type="button"
-          aria-label={open ? "Close menu" : "Open menu"}
-          onClick={() => setOpen(!open)}
-          className="rounded-lg p-2 text-white"
-        >
-          {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
-      </div>
-      {open ? (
-        <div className="bg-ink px-4 pb-4 lg:hidden">
-          {links}
-          <button
-            type="button"
-            onClick={signOut}
-            className="mt-1 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-semibold text-white/55"
-          >
-            <LogOut className="h-[18px] w-[18px]" />
-            Sign out
-          </button>
-        </div>
-      ) : null}
+          <nav className="hidden items-center gap-1 rounded-full border border-border bg-background p-1 lg:flex">
+            {nav.map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                className={cn(
+                  "rounded-full px-4 py-1.5 text-[14px] font-semibold transition-colors",
+                  isActive(item.to)
+                    ? "bg-surface text-ink shadow-[0_1px_2px_rgba(17,24,39,0.10)]"
+                    : "text-[#6b7280] hover:text-ink",
+                )}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </nav>
 
-      <main className="min-w-0 flex-1">
-        <div className="mx-auto max-w-[1120px] px-5 py-8 sm:px-8 sm:py-10">
-          <header className="mb-7 flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <h1 className="text-[27px] leading-tight sm:text-[31px]">{title}</h1>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={signOut}
+              className="hidden items-center gap-2 rounded-full border border-border px-3.5 py-1.5 text-[13px] font-semibold text-[#4b5563] transition-colors hover:border-ink/25 hover:text-ink lg:inline-flex"
+            >
+              <LogOut className="h-4 w-4" />
+              Sign out
+            </button>
+            <button
+              type="button"
+              aria-label={open ? "Close menu" : "Open menu"}
+              onClick={() => setOpen(!open)}
+              className="rounded-xl border border-border p-2 text-ink lg:hidden"
+            >
+              {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
+        </header>
+
+        {open ? (
+          <div className="space-y-1 border-b border-border px-4 py-3 lg:hidden">
+            {nav.map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                onClick={() => setOpen(false)}
+                className={cn(
+                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-semibold",
+                  isActive(item.to) ? "bg-background text-ink" : "text-[#6b7280]",
+                )}
+              >
+                <item.icon className="h-[18px] w-[18px]" />
+                {item.label}
+              </Link>
+            ))}
+            <button
+              type="button"
+              onClick={signOut}
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-semibold text-[#6b7280]"
+            >
+              <LogOut className="h-[18px] w-[18px]" />
+              Sign out
+            </button>
+          </div>
+        ) : null}
+
+        <main className="min-w-0 bg-background px-4 py-7 sm:px-7 sm:py-9">
+          <div className="mb-6 grid grid-cols-1 items-end gap-4 sm:grid-cols-[minmax(0,1fr)_auto]">
+            <div className="min-w-0">
+              <h1 className="text-[26px] leading-tight sm:text-[30px]">{title}</h1>
               {subtitle ? <p className="mt-1.5 text-[15px] text-[#6b7280]">{subtitle}</p> : null}
             </div>
             {actions}
-          </header>
+          </div>
           {children}
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 }

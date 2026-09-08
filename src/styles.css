@@ -41,6 +41,7 @@
   --color-success-soft: var(--success-soft);
   --color-warning: var(--warning);
   --color-warning-soft: var(--warning-soft);
+  --color-app-canvas: var(--app-canvas);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -90,6 +91,7 @@
   --success-soft: #e6f2ee;
   --warning: #c68118;
   --warning-soft: #fbf1e0;
+  --app-canvas: #eceef4;
   --background: #fafaf8;
   --foreground: #111827;
   --card: #ffffff;

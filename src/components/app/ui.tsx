@@ -6,7 +6,7 @@ export function Panel({ className, children }: { className?: string; children: R
   return (
     <div
       className={cn(
-        "rounded-2xl border border-border bg-surface shadow-[0_1px_2px_rgba(17,24,39,0.04)]",
+        "rounded-2xl border border-border/70 bg-surface shadow-[0_1px_3px_rgba(17,24,39,0.05)]",
         className,
       )}
     >
