@@ -6,14 +6,43 @@ import { useMemo, useState, type FormEvent } from "react";
 
 import { AppShell } from "@/components/app/AppShell";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { DOC_TYPES, assignSubcontractorsToProject, bulkCreateDocumentRequests, createSubcontractor, getWorkspace } from "@/lib/app.functions";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DOC_TYPES,
+  assignSubcontractorsToProject,
+  bulkCreateDocumentRequests,
+  createSubcontractor,
+  getWorkspace,
+} from "@/lib/app.functions";
 import { EmptyState, Field, Panel, btn, inputClass } from "@/components/app/ui";
 
 export const Route = createFileRoute("/_authenticated/subcontractors/")({
-  validateSearch: (search: Record<string, unknown>) => ({ bulk: search["bulk"] === "request" ? "request" as const : undefined }),
+  validateSearch: (search: Record<string, unknown>) => ({
+    bulk: search["bulk"] === "request" ? ("request" as const) : undefined,
+  }),
   component: SubcontractorsPage,
-  head: () => ({ meta: [{ title: "Subcontractor operations | CertKeep" }, { name: "description", content: "Manage subcontractor document readiness and send requests in bulk." }, { property: "og:title", content: "Subcontractor operations | CertKeep" }, { property: "og:description", content: "Manage subcontractors, project assignments, and document requests." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
+  head: () => ({
+    meta: [
+      { title: "Subcontractor operations | CertKeep" },
+      {
+        name: "description",
+        content: "Manage subcontractor document readiness and send requests in bulk.",
+      },
+      { property: "og:title", content: "Subcontractor operations | CertKeep" },
+      {
+        property: "og:description",
+        content: "Manage subcontractors, project assignments, and document requests.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
 });
 
 function SubcontractorsPage() {
@@ -30,22 +59,363 @@ function SubcontractorsPage() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
   const [error, setError] = useState("");
-  const subs = useMemo(() => (data?.subcontractors ?? []).filter((s) => s.company.toLowerCase().includes(search.toLowerCase())).filter((s) => { const docs = (data?.requests ?? []).filter((r) => r.subcontractor_id === s.id); if (status === "ready") return docs.length > 0 && docs.every((d) => d.status === "approved"); if (status === "action") return docs.some((d) => d.status !== "approved"); return true; }), [data, search, status]);
-  const refresh = () => { setSelected([]); setDialog(null); qc.invalidateQueries({ queryKey: ["workspace"] }); qc.invalidateQueries({ queryKey: ["command-center"] }); };
-  const addMutation = useMutation({ mutationFn: (values: { company: string; trade: string; project: string; contactName: string; contactEmail: string; contactPhone: string }) => add({ data: values }), onSuccess: () => { setShowAdd(false); refresh(); }, onError: (e) => setError(e instanceof Error ? e.message : "Could not add subcontractor.") });
-  const requestMutation = useMutation({ mutationFn: (input: { subcontractorIds: string[]; docType: string; projectId: string | null; dueDate: string }) => bulkRequest({ data: input }), onSuccess: refresh, onError: (e) => setError(e instanceof Error ? e.message : "Could not send requests.") });
-  const assignMutation = useMutation({ mutationFn: (input: { subcontractorIds: string[]; projectId: string; plannedStartDate: string }) => assign({ data: input }), onSuccess: refresh, onError: (e) => setError(e instanceof Error ? e.message : "Could not assign subcontractors.") });
-  function submitAdd(e: FormEvent<HTMLFormElement>) { e.preventDefault(); const f = new FormData(e.currentTarget); addMutation.mutate({ company: String(f.get("company") ?? ""), trade: String(f.get("trade") ?? ""), project: "", contactName: String(f.get("contactName") ?? ""), contactEmail: String(f.get("contactEmail") ?? ""), contactPhone: String(f.get("contactPhone") ?? "") }); }
-  function exportCsv() { const rows = (data?.subcontractors ?? []).filter((s) => selected.includes(s.id)); const csv = [["Company", "Trade", "Contact", "Email"], ...rows.map((s) => [s.company, s.trade ?? "", s.contact_name ?? "", s.contact_email ?? ""])].map((row) => row.map((v) => `"${String(v).replaceAll('"', '""')}"`).join(",")).join("\n"); const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); const a = document.createElement("a"); a.href = url; a.download = "certkeep-subcontractors.csv"; a.click(); URL.revokeObjectURL(url); }
+  const subs = useMemo(
+    () =>
+      (data?.subcontractors ?? [])
+        .filter((s) => s.company.toLowerCase().includes(search.toLowerCase()))
+        .filter((s) => {
+          const docs = (data?.requests ?? []).filter((r) => r.subcontractor_id === s.id);
+          if (status === "ready")
+            return docs.length > 0 && docs.every((d) => d.status === "approved");
+          if (status === "action") return docs.some((d) => d.status !== "approved");
+          return true;
+        }),
+    [data, search, status],
+  );
+  const refresh = () => {
+    setSelected([]);
+    setDialog(null);
+    qc.invalidateQueries({ queryKey: ["workspace"] });
+    qc.invalidateQueries({ queryKey: ["command-center"] });
+  };
+  const addMutation = useMutation({
+    mutationFn: (values: {
+      company: string;
+      trade: string;
+      project: string;
+      contactName: string;
+      contactEmail: string;
+      contactPhone: string;
+    }) => add({ data: values }),
+    onSuccess: () => {
+      setShowAdd(false);
+      refresh();
+    },
+    onError: (e) => setError(e instanceof Error ? e.message : "Could not add subcontractor."),
+  });
+  const requestMutation = useMutation({
+    mutationFn: (input: {
+      subcontractorIds: string[];
+      docType: string;
+      projectId: string | null;
+      dueDate: string;
+    }) => bulkRequest({ data: input }),
+    onSuccess: refresh,
+    onError: (e) => setError(e instanceof Error ? e.message : "Could not send requests."),
+  });
+  const assignMutation = useMutation({
+    mutationFn: (input: {
+      subcontractorIds: string[];
+      projectId: string;
+      plannedStartDate: string;
+    }) => assign({ data: input }),
+    onSuccess: refresh,
+    onError: (e) => setError(e instanceof Error ? e.message : "Could not assign subcontractors."),
+  });
+  function submitAdd(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const f = new FormData(e.currentTarget);
+    addMutation.mutate({
+      company: String(f.get("company") ?? ""),
+      trade: String(f.get("trade") ?? ""),
+      project: "",
+      contactName: String(f.get("contactName") ?? ""),
+      contactEmail: String(f.get("contactEmail") ?? ""),
+      contactPhone: String(f.get("contactPhone") ?? ""),
+    });
+  }
+  function exportCsv() {
+    const rows = (data?.subcontractors ?? []).filter((s) => selected.includes(s.id));
+    const csv = [
+      ["Company", "Trade", "Contact", "Email"],
+      ...rows.map((s) => [s.company, s.trade ?? "", s.contact_name ?? "", s.contact_email ?? ""]),
+    ]
+      .map((row) => row.map((v) => `"${String(v).replaceAll('"', '""')}"`).join(","))
+      .join("\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "certkeep-subcontractors.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
 
-  return <AppShell title="Subcontractors" subtitle="Work through document gaps across your trade partner roster" actions={<button type="button" className={btn.primary} onClick={() => setShowAdd(!showAdd)}><Plus className="h-4 w-4" />Add subcontractor</button>}>
-    <div className="space-y-5">
-      {showAdd ? <Panel><form onSubmit={submitAdd} className="grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-5"><Field label="Company" htmlFor="company"><input id="company" name="company" className={inputClass} required /></Field><Field label="Trade" htmlFor="trade"><input id="trade" name="trade" className={inputClass} /></Field><Field label="Contact" htmlFor="contactName"><input id="contactName" name="contactName" className={inputClass} /></Field><Field label="Email" htmlFor="contactEmail"><input id="contactEmail" name="contactEmail" type="email" className={inputClass} /></Field><Field label="Phone" htmlFor="contactPhone"><input id="contactPhone" name="contactPhone" className={inputClass} /></Field><div className="lg:col-span-5"><button className={btn.primary} disabled={addMutation.isPending}>Save subcontractor</button></div></form></Panel> : null}
-      <Panel className="overflow-hidden"><div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4"><div className="flex flex-1 flex-wrap items-center gap-2"><div className="relative min-w-[220px] flex-1 sm:max-w-[320px]"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><input aria-label="Search subcontractors" className={`${inputClass} pl-9`} placeholder="Search company or trade" value={search} onChange={(e) => setSearch(e.target.value)} /></div><select aria-label="Filter by readiness" className={`${inputClass} w-auto min-w-[150px]`} value={status} onChange={(e) => setStatus(e.target.value)}><option value="all">All statuses</option><option value="action">Needs action</option><option value="ready">Requirements satisfied</option></select></div>{selected.length ? <div className="flex flex-wrap gap-2"><button className={btn.ghost} onClick={() => setDialog("assign")}><FolderInput className="h-4 w-4" />Assign project</button><button className={btn.ghost} onClick={exportCsv}><Download className="h-4 w-4" />Export</button><button className={btn.primary} onClick={() => setDialog("request")}><Send className="h-4 w-4" />Request from {selected.length}</button></div> : null}</div>
-        {error ? <p role="alert" className="border-b border-border bg-brand-soft px-5 py-3 text-[11px] text-brand">{error}</p> : null}
-        {isLoading ? <p className="p-8 text-[12px] text-muted-foreground">Loading roster…</p> : subs.length ? <div className="overflow-x-auto"><table className="w-full min-w-[760px] text-left"><thead><tr className="bg-surface-muted text-[9px] font-bold text-muted-foreground"><th className="w-12 px-5 py-3"><Checkbox aria-label="Select all visible subcontractors" checked={subs.length > 0 && subs.every((s) => selected.includes(s.id))} onCheckedChange={(checked) => setSelected(checked ? subs.map((s) => s.id) : [])} /></th><th className="px-3 py-3">COMPANY</th><th className="px-3 py-3">TRADE</th><th className="px-3 py-3">DOCUMENT STATUS</th><th className="px-3 py-3">PROJECTS</th><th className="px-5 py-3 text-right">OPEN</th></tr></thead><tbody>{subs.map((sub) => { const docs = (data?.requests ?? []).filter((d) => d.subcontractor_id === sub.id); const approved = docs.filter((d) => d.status === "approved").length; const assignments = (data?.assignments ?? []).filter((a) => a.subcontractor_id === sub.id); return <tr key={sub.id} className="border-t border-border hover:bg-surface-muted/50"><td className="px-5 py-4"><Checkbox aria-label={`Select ${sub.company}`} checked={selected.includes(sub.id)} onCheckedChange={(checked) => setSelected(checked ? [...selected, sub.id] : selected.filter((id) => id !== sub.id))} /></td><td className="px-3 py-4"><p className="text-[12px] font-bold text-ink">{sub.company}</p><p className="mt-0.5 text-[9px] text-muted-foreground">{sub.contact_email || "No email"}</p></td><td className="px-3 py-4 text-[11px] text-ink">{sub.trade || "—"}</td><td className="px-3 py-4"><span className={`rounded-full px-2.5 py-1 text-[9px] font-bold ${docs.length > 0 && approved === docs.length ? "bg-success-soft text-success" : "bg-brand-soft text-brand"}`}>{docs.length > 0 && approved === docs.length ? "Document requirements satisfied" : `${docs.length - approved} need attention`}</span></td><td className="px-3 py-4 text-[10px] text-muted-foreground">{assignments.map((a) => data?.projects.find((p) => p.id === a.project_id)?.name).filter(Boolean).join(", ") || "Not assigned"}</td><td className="px-5 py-4 text-right"><Link to="/subcontractors/$id" params={{ id: sub.id }} className={btn.ghost}>Open</Link></td></tr>; })}</tbody></table></div> : <EmptyState title="No subcontractors yet" body="Add your first trade partner, assign upcoming work, and send a secure document request." />}
-      </Panel>
-    </div>
-    <Dialog open={dialog !== null} onOpenChange={(open) => { if (!open) setDialog(null); }}><DialogContent className="rounded-[18px] border-border bg-surface"><DialogHeader><DialogTitle>{dialog === "request" ? `Request documents from ${selected.length} subcontractors` : `Assign ${selected.length} subcontractors to a project`}</DialogTitle><DialogDescription>{dialog === "request" ? "Creates secure upload links and schedules the next follow-up. It does not mark the document complete." : "Add a planned start date so upcoming document gaps rise to the top."}</DialogDescription></DialogHeader>{dialog === "request" ? <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); const f = new FormData(e.currentTarget); requestMutation.mutate({ subcontractorIds: selected, docType: String(f.get("docType")), projectId: String(f.get("projectId") || "") || null, dueDate: String(f.get("dueDate") || "") }); }}><Field label="Document" htmlFor="docType"><select id="docType" name="docType" className={inputClass}>{DOC_TYPES.map((t) => <option key={t}>{t}</option>)}</select></Field><Field label="Project" htmlFor="projectId"><select id="projectId" name="projectId" className={inputClass}><option value="">No project</option>{data?.projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></Field><Field label="Due date" htmlFor="dueDate"><input id="dueDate" name="dueDate" type="date" className={inputClass} /></Field><button className={`${btn.primary} w-full`} disabled={requestMutation.isPending}><Send className="h-4 w-4" />Create secure requests</button></form> : <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); const f = new FormData(e.currentTarget); assignMutation.mutate({ subcontractorIds: selected, projectId: String(f.get("projectId")), plannedStartDate: String(f.get("plannedStartDate") || "") }); }}><Field label="Project" htmlFor="assignProject"><select id="assignProject" name="projectId" className={inputClass} required><option value="">Choose a project</option>{data?.projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></Field><Field label="Planned start date" htmlFor="assignStart"><input id="assignStart" name="plannedStartDate" type="date" className={inputClass} /></Field><button className={`${btn.primary} w-full`} disabled={assignMutation.isPending}><FolderInput className="h-4 w-4" />Assign selected</button></form>}</DialogContent></Dialog>
-  </AppShell>;
+  return (
+    <AppShell
+      title="Subcontractors"
+      subtitle="Work through document gaps across your trade partner roster"
+      actions={
+        <button type="button" className={btn.primary} onClick={() => setShowAdd(!showAdd)}>
+          <Plus className="h-4 w-4" />
+          Add subcontractor
+        </button>
+      }
+    >
+      <div className="space-y-5">
+        {showAdd ? (
+          <Panel>
+            <form onSubmit={submitAdd} className="grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-5">
+              <Field label="Company" htmlFor="company">
+                <input id="company" name="company" className={inputClass} required />
+              </Field>
+              <Field label="Trade" htmlFor="trade">
+                <input id="trade" name="trade" className={inputClass} />
+              </Field>
+              <Field label="Contact" htmlFor="contactName">
+                <input id="contactName" name="contactName" className={inputClass} />
+              </Field>
+              <Field label="Email" htmlFor="contactEmail">
+                <input id="contactEmail" name="contactEmail" type="email" className={inputClass} />
+              </Field>
+              <Field label="Phone" htmlFor="contactPhone">
+                <input id="contactPhone" name="contactPhone" className={inputClass} />
+              </Field>
+              <div className="lg:col-span-5">
+                <button className={btn.primary} disabled={addMutation.isPending}>
+                  Save subcontractor
+                </button>
+              </div>
+            </form>
+          </Panel>
+        ) : null}
+        <Panel className="overflow-hidden">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4">
+            <div className="flex flex-1 flex-wrap items-center gap-2">
+              <div className="relative min-w-[220px] flex-1 sm:max-w-[320px]">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  aria-label="Search subcontractors"
+                  className={`${inputClass} pl-9`}
+                  placeholder="Search company or trade"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+              <select
+                aria-label="Filter by readiness"
+                className={`${inputClass} w-auto min-w-[150px]`}
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+              >
+                <option value="all">All statuses</option>
+                <option value="action">Needs action</option>
+                <option value="ready">Requirements satisfied</option>
+              </select>
+            </div>
+            {selected.length ? (
+              <div className="flex flex-wrap gap-2">
+                <button className={btn.ghost} onClick={() => setDialog("assign")}>
+                  <FolderInput className="h-4 w-4" />
+                  Assign project
+                </button>
+                <button className={btn.ghost} onClick={exportCsv}>
+                  <Download className="h-4 w-4" />
+                  Export
+                </button>
+                <button className={btn.primary} onClick={() => setDialog("request")}>
+                  <Send className="h-4 w-4" />
+                  Request from {selected.length}
+                </button>
+              </div>
+            ) : null}
+          </div>
+          {error ? (
+            <p
+              role="alert"
+              className="border-b border-border bg-brand-soft px-5 py-3 text-[11px] text-brand"
+            >
+              {error}
+            </p>
+          ) : null}
+          {isLoading ? (
+            <p className="p-8 text-[12px] text-muted-foreground">Loading roster…</p>
+          ) : subs.length ? (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[760px] text-left">
+                <thead>
+                  <tr className="bg-surface-muted text-[9px] font-bold text-muted-foreground">
+                    <th className="w-12 px-5 py-3">
+                      <Checkbox
+                        aria-label="Select all visible subcontractors"
+                        checked={subs.length > 0 && subs.every((s) => selected.includes(s.id))}
+                        onCheckedChange={(checked) =>
+                          setSelected(checked ? subs.map((s) => s.id) : [])
+                        }
+                      />
+                    </th>
+                    <th className="px-3 py-3">COMPANY</th>
+                    <th className="px-3 py-3">TRADE</th>
+                    <th className="px-3 py-3">DOCUMENT STATUS</th>
+                    <th className="px-3 py-3">PROJECTS</th>
+                    <th className="px-5 py-3 text-right">OPEN</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {subs.map((sub) => {
+                    const docs = (data?.requests ?? []).filter(
+                      (d) => d.subcontractor_id === sub.id,
+                    );
+                    const approved = docs.filter((d) => d.status === "approved").length;
+                    const assignments = (data?.assignments ?? []).filter(
+                      (a) => a.subcontractor_id === sub.id,
+                    );
+                    return (
+                      <tr key={sub.id} className="border-t border-border hover:bg-surface-muted/50">
+                        <td className="px-5 py-4">
+                          <Checkbox
+                            aria-label={`Select ${sub.company}`}
+                            checked={selected.includes(sub.id)}
+                            onCheckedChange={(checked) =>
+                              setSelected(
+                                checked
+                                  ? [...selected, sub.id]
+                                  : selected.filter((id) => id !== sub.id),
+                              )
+                            }
+                          />
+                        </td>
+                        <td className="px-3 py-4">
+                          <p className="text-[12px] font-bold text-ink">{sub.company}</p>
+                          <p className="mt-0.5 text-[9px] text-muted-foreground">
+                            {sub.contact_email || "No email"}
+                          </p>
+                        </td>
+                        <td className="px-3 py-4 text-[11px] text-ink">{sub.trade || "—"}</td>
+                        <td className="px-3 py-4">
+                          <span
+                            className={`rounded-full px-2.5 py-1 text-[9px] font-bold ${docs.length > 0 && approved === docs.length ? "bg-success-soft text-success" : "bg-brand-soft text-brand"}`}
+                          >
+                            {docs.length > 0 && approved === docs.length
+                              ? "Document requirements satisfied"
+                              : `${docs.length - approved} need attention`}
+                          </span>
+                        </td>
+                        <td className="px-3 py-4 text-[10px] text-muted-foreground">
+                          {assignments
+                            .map((a) => data?.projects.find((p) => p.id === a.project_id)?.name)
+                            .filter(Boolean)
+                            .join(", ") || "Not assigned"}
+                        </td>
+                        <td className="px-5 py-4 text-right">
+                          <Link
+                            to="/subcontractors/$id"
+                            params={{ id: sub.id }}
+                            className={btn.ghost}
+                          >
+                            Open
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <EmptyState
+              title="No subcontractors yet"
+              body="Add your first trade partner, assign upcoming work, and send a secure document request."
+            />
+          )}
+        </Panel>
+      </div>
+      <Dialog
+        open={dialog !== null}
+        onOpenChange={(open) => {
+          if (!open) setDialog(null);
+        }}
+      >
+        <DialogContent className="rounded-[18px] border-border bg-surface">
+          <DialogHeader>
+            <DialogTitle>
+              {dialog === "request"
+                ? `Request documents from ${selected.length} subcontractors`
+                : `Assign ${selected.length} subcontractors to a project`}
+            </DialogTitle>
+            <DialogDescription>
+              {dialog === "request"
+                ? "Creates secure upload links and schedules the next follow-up. It does not mark the document complete."
+                : "Add a planned start date so upcoming document gaps rise to the top."}
+            </DialogDescription>
+          </DialogHeader>
+          {dialog === "request" ? (
+            <form
+              className="space-y-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const f = new FormData(e.currentTarget);
+                requestMutation.mutate({
+                  subcontractorIds: selected,
+                  docType: String(f.get("docType")),
+                  projectId: String(f.get("projectId") || "") || null,
+                  dueDate: String(f.get("dueDate") || ""),
+                });
+              }}
+            >
+              <Field label="Document" htmlFor="docType">
+                <select id="docType" name="docType" className={inputClass}>
+                  {DOC_TYPES.map((t) => (
+                    <option key={t}>{t}</option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="Project" htmlFor="projectId">
+                <select id="projectId" name="projectId" className={inputClass}>
+                  <option value="">No project</option>
+                  {data?.projects.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="Due date" htmlFor="dueDate">
+                <input id="dueDate" name="dueDate" type="date" className={inputClass} />
+              </Field>
+              <button className={`${btn.primary} w-full`} disabled={requestMutation.isPending}>
+                <Send className="h-4 w-4" />
+                Create secure requests
+              </button>
+            </form>
+          ) : (
+            <form
+              className="space-y-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const f = new FormData(e.currentTarget);
+                assignMutation.mutate({
+                  subcontractorIds: selected,
+                  projectId: String(f.get("projectId")),
+                  plannedStartDate: String(f.get("plannedStartDate") || ""),
+                });
+              }}
+            >
+              <Field label="Project" htmlFor="assignProject">
+                <select id="assignProject" name="projectId" className={inputClass} required>
+                  <option value="">Choose a project</option>
+                  {data?.projects.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="Planned start date" htmlFor="assignStart">
+                <input
+                  id="assignStart"
+                  name="plannedStartDate"
+                  type="date"
+                  className={inputClass}
+                />
+              </Field>
+              <button className={`${btn.primary} w-full`} disabled={assignMutation.isPending}>
+                <FolderInput className="h-4 w-4" />
+                Assign selected
+              </button>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
+    </AppShell>
+  );
 }

@@ -8,7 +8,25 @@ import { AppShell } from "@/components/app/AppShell";
 import { Field, Panel, PanelHead, btn, inputClass } from "@/components/app/ui";
 import { createProject, getCommandCenter } from "@/lib/app.functions";
 
-export const Route = createFileRoute("/_authenticated/projects")({ component: ProjectsPage, head: () => ({ meta: [{ title: "Projects and readiness | CertKeep" }, { name: "description", content: "Track project starts, subcontractors, and document readiness." }, { property: "og:title", content: "Projects and readiness | CertKeep" }, { property: "og:description", content: "Plan upcoming work and resolve project document gaps." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }) });
+export const Route = createFileRoute("/_authenticated/projects")({
+  component: ProjectsPage,
+  head: () => ({
+    meta: [
+      { title: "Projects and readiness | CertKeep" },
+      {
+        name: "description",
+        content: "Track project starts, subcontractors, and document readiness.",
+      },
+      { property: "og:title", content: "Projects and readiness | CertKeep" },
+      {
+        property: "og:description",
+        content: "Plan upcoming work and resolve project document gaps.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
+});
 
 function ProjectsPage() {
   const [showForm, setShowForm] = useState(false);
@@ -18,7 +36,13 @@ function ProjectsPage() {
   const add = useServerFn(createProject);
   const { data, isLoading } = useQuery({ queryKey: ["command-center"], queryFn: () => load() });
   const mutation = useMutation({
-    mutationFn: (values: { name: string; code: string; location: string; startDate: string; endDate: string }) => add({ data: values }),
+    mutationFn: (values: {
+      name: string;
+      code: string;
+      location: string;
+      startDate: string;
+      endDate: string;
+    }) => add({ data: values }),
     onSuccess: () => {
       setShowForm(false);
       setError("");
@@ -77,9 +101,15 @@ function ProjectsPage() {
                   placeholder="Austin, TX"
                 />
               </Field>
-              <Field label="Start date" htmlFor="startDate"><input id="startDate" name="startDate" type="date" className={inputClass} /></Field>
-              <Field label="End date" htmlFor="endDate"><input id="endDate" name="endDate" type="date" className={inputClass} /></Field>
-              {error ? <p className="text-[12px] text-destructive sm:col-span-2 xl:col-span-5">{error}</p> : null}
+              <Field label="Start date" htmlFor="startDate">
+                <input id="startDate" name="startDate" type="date" className={inputClass} />
+              </Field>
+              <Field label="End date" htmlFor="endDate">
+                <input id="endDate" name="endDate" type="date" className={inputClass} />
+              </Field>
+              {error ? (
+                <p className="text-[12px] text-destructive sm:col-span-2 xl:col-span-5">{error}</p>
+              ) : null}
               <div className="sm:col-span-2 xl:col-span-5">
                 <button className={btn.primary} disabled={mutation.isPending}>
                   {mutation.isPending ? "Creating…" : "Create project"}
@@ -93,32 +123,37 @@ function ProjectsPage() {
             <p className="text-[12px] text-[#7b8190]">Loading projects…</p>
           ) : data?.projects.length ? (
             data.projects.map((project) => (
-              <Link key={project.id} to="/projects/$id" params={{ id: project.id }} className="block">
-              <Panel className="p-5 transition-transform hover:-translate-y-0.5">
-                <div className="flex items-start justify-between">
-                  <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#eef0f3] text-ink">
-                    <Building2 className="h-5 w-5" />
-                  </span>
-                  <span className="rounded-full bg-success-soft px-2.5 py-1 text-[9px] font-bold capitalize text-success">
-                    {project.status.replace("_", " ")}
-                  </span>
-                </div>
-                <h2 className="mt-5 text-[15px]">{project.name}</h2>
-                <p className="mt-1 text-[10px] text-[#8b91a0]">
-                  {project.code || "No project code"}
-                </p>
-                <div className="mt-5 flex items-center justify-between border-t border-black/[.06] pt-4">
-                  <span className="flex items-center gap-1.5 text-[10px] text-[#7b8190]">
-                    <MapPin className="h-3.5 w-3.5" />
-                    {project.location || "Location not set"}
-                  </span>
-                  <span className="text-[10px] font-bold text-ink">
-                    {data.requirements.filter((r) => r.project_id === project.id).length}{" "}
-                    requirements
-                  </span>
-                </div>
-                <p className="mt-3 text-[10px] font-bold text-brand">Open readiness view →</p>
-              </Panel>
+              <Link
+                key={project.id}
+                to="/projects/$id"
+                params={{ id: project.id }}
+                className="block"
+              >
+                <Panel className="p-5 transition-transform hover:-translate-y-0.5">
+                  <div className="flex items-start justify-between">
+                    <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#eef0f3] text-ink">
+                      <Building2 className="h-5 w-5" />
+                    </span>
+                    <span className="rounded-full bg-success-soft px-2.5 py-1 text-[9px] font-bold capitalize text-success">
+                      {project.status.replace("_", " ")}
+                    </span>
+                  </div>
+                  <h2 className="mt-5 text-[15px]">{project.name}</h2>
+                  <p className="mt-1 text-[10px] text-[#8b91a0]">
+                    {project.code || "No project code"}
+                  </p>
+                  <div className="mt-5 flex items-center justify-between border-t border-black/[.06] pt-4">
+                    <span className="flex items-center gap-1.5 text-[10px] text-[#7b8190]">
+                      <MapPin className="h-3.5 w-3.5" />
+                      {project.location || "Location not set"}
+                    </span>
+                    <span className="text-[10px] font-bold text-ink">
+                      {data.requirements.filter((r) => r.project_id === project.id).length}{" "}
+                      requirements
+                    </span>
+                  </div>
+                  <p className="mt-3 text-[10px] font-bold text-brand">Open readiness view →</p>
+                </Panel>
               </Link>
             ))
           ) : (
