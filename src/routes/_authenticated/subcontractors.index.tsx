@@ -1,187 +1,51 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useState, type FormEvent } from "react";
+import { Download, FolderInput, Plus, Search, Send } from "lucide-react";
+import { useMemo, useState, type FormEvent } from "react";
 
 import { AppShell } from "@/components/app/AppShell";
-import { EmptyState, Field, Panel, PanelHead, btn, inputClass } from "@/components/app/ui";
-import { createSubcontractor, getWorkspace } from "@/lib/app.functions";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DOC_TYPES, assignSubcontractorsToProject, bulkCreateDocumentRequests, createSubcontractor, getWorkspace } from "@/lib/app.functions";
+import { EmptyState, Field, Panel, btn, inputClass } from "@/components/app/ui";
 
 export const Route = createFileRoute("/_authenticated/subcontractors/")({
+  validateSearch: (search: Record<string, unknown>) => ({ bulk: search["bulk"] === "request" ? "request" as const : undefined }),
   component: SubcontractorsPage,
-  head: () => ({
-    meta: [
-      { title: "Subcontractors | CertKeep" },
-      {
-        name: "description",
-        content: "Add subcontractors and track the compliance documents you have requested.",
-      },
-      { property: "og:title", content: "Subcontractors | CertKeep" },
-      {
-        property: "og:description",
-        content: "Your subcontractor list and their document status.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
+  head: () => ({ meta: [{ title: "Subcontractor operations | CertKeep" }, { name: "description", content: "Manage subcontractor document readiness and send requests in bulk." }, { property: "og:title", content: "Subcontractor operations | CertKeep" }, { property: "og:description", content: "Manage subcontractors, project assignments, and document requests." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
 });
 
-type SubInput = {
-  company: string;
-  trade: string;
-  project: string;
-  contactName: string;
-  contactEmail: string;
-  contactPhone: string;
-};
-
 function SubcontractorsPage() {
+  const initial = Route.useSearch();
   const qc = useQueryClient();
-  const fetchWorkspace = useServerFn(getWorkspace);
-  const addSub = useServerFn(createSubcontractor);
-  const [showForm, setShowForm] = useState(false);
+  const load = useServerFn(getWorkspace);
+  const add = useServerFn(createSubcontractor);
+  const bulkRequest = useServerFn(bulkCreateDocumentRequests);
+  const assign = useServerFn(assignSubcontractorsToProject);
+  const { data, isLoading } = useQuery({ queryKey: ["workspace"], queryFn: () => load() });
+  const [showAdd, setShowAdd] = useState(false);
+  const [dialog, setDialog] = useState<"request" | "assign" | null>(initial.bulk ?? null);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("all");
   const [error, setError] = useState("");
+  const subs = useMemo(() => (data?.subcontractors ?? []).filter((s) => s.company.toLowerCase().includes(search.toLowerCase())).filter((s) => { const docs = (data?.requests ?? []).filter((r) => r.subcontractor_id === s.id); if (status === "ready") return docs.length > 0 && docs.every((d) => d.status === "approved"); if (status === "action") return docs.some((d) => d.status !== "approved"); return true; }), [data, search, status]);
+  const refresh = () => { setSelected([]); setDialog(null); qc.invalidateQueries({ queryKey: ["workspace"] }); qc.invalidateQueries({ queryKey: ["command-center"] }); };
+  const addMutation = useMutation({ mutationFn: (values: { company: string; trade: string; project: string; contactName: string; contactEmail: string; contactPhone: string }) => add({ data: values }), onSuccess: () => { setShowAdd(false); refresh(); }, onError: (e) => setError(e instanceof Error ? e.message : "Could not add subcontractor.") });
+  const requestMutation = useMutation({ mutationFn: (input: { subcontractorIds: string[]; docType: string; projectId: string | null; dueDate: string }) => bulkRequest({ data: input }), onSuccess: refresh, onError: (e) => setError(e instanceof Error ? e.message : "Could not send requests.") });
+  const assignMutation = useMutation({ mutationFn: (input: { subcontractorIds: string[]; projectId: string; plannedStartDate: string }) => assign({ data: input }), onSuccess: refresh, onError: (e) => setError(e instanceof Error ? e.message : "Could not assign subcontractors.") });
+  function submitAdd(e: FormEvent<HTMLFormElement>) { e.preventDefault(); const f = new FormData(e.currentTarget); addMutation.mutate({ company: String(f.get("company") ?? ""), trade: String(f.get("trade") ?? ""), project: "", contactName: String(f.get("contactName") ?? ""), contactEmail: String(f.get("contactEmail") ?? ""), contactPhone: String(f.get("contactPhone") ?? "") }); }
+  function exportCsv() { const rows = (data?.subcontractors ?? []).filter((s) => selected.includes(s.id)); const csv = [["Company", "Trade", "Contact", "Email"], ...rows.map((s) => [s.company, s.trade ?? "", s.contact_name ?? "", s.contact_email ?? ""])].map((row) => row.map((v) => `"${String(v).replaceAll('"', '""')}"`).join(",")).join("\n"); const url = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); const a = document.createElement("a"); a.href = url; a.download = "certkeep-subcontractors.csv"; a.click(); URL.revokeObjectURL(url); }
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["workspace"],
-    queryFn: () => fetchWorkspace(),
-  });
-
-  const mutation = useMutation({
-    mutationFn: (values: SubInput) => addSub({ data: values }),
-    onSuccess: () => {
-      setShowForm(false);
-      setError("");
-      qc.invalidateQueries({ queryKey: ["workspace"] });
-    },
-    onError: (e: unknown) =>
-      setError(e instanceof Error ? e.message : "Could not add that subcontractor."),
-  });
-
-  function onSubmit(e: FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const f = new FormData(e.currentTarget);
-    const company = String(f.get("company") ?? "").trim();
-    if (!company) {
-      setError("Enter the company name.");
-      return;
-    }
-    mutation.mutate({
-      company,
-      trade: String(f.get("trade") ?? "").trim(),
-      project: String(f.get("project") ?? "").trim(),
-      contactName: String(f.get("contactName") ?? "").trim(),
-      contactEmail: String(f.get("contactEmail") ?? "").trim(),
-      contactPhone: String(f.get("contactPhone") ?? "").trim(),
-    });
-  }
-
-  const subs = data?.subcontractors ?? [];
-  const requests = data?.requests ?? [];
-
-  return (
-    <AppShell
-      title="Subcontractors"
-      subtitle="Everyone you collect documents from"
-      actions={
-        <button type="button" className={btn.primary} onClick={() => setShowForm((v) => !v)}>
-          {showForm ? "Close" : "Add subcontractor"}
-        </button>
-      }
-    >
-      <div className="space-y-6">
-        {showForm ? (
-          <Panel>
-            <PanelHead title="New subcontractor" />
-            <form onSubmit={onSubmit} className="grid gap-5 px-6 py-6 sm:grid-cols-2" noValidate>
-              <Field label="Company" htmlFor="company">
-                <input id="company" name="company" required className={inputClass} />
-              </Field>
-              <Field label="Trade" htmlFor="trade">
-                <input
-                  id="trade"
-                  name="trade"
-                  className={inputClass}
-                  placeholder="Electrical, concrete..."
-                />
-              </Field>
-              <Field label="Project" htmlFor="project">
-                <input id="project" name="project" className={inputClass} />
-              </Field>
-              <Field label="Contact name" htmlFor="contactName">
-                <input id="contactName" name="contactName" className={inputClass} />
-              </Field>
-              <Field label="Contact email" htmlFor="contactEmail">
-                <input id="contactEmail" name="contactEmail" type="email" className={inputClass} />
-              </Field>
-              <Field label="Contact phone" htmlFor="contactPhone">
-                <input id="contactPhone" name="contactPhone" className={inputClass} />
-              </Field>
-              {error ? (
-                <p className="text-[14px] text-destructive sm:col-span-2" role="alert">
-                  {error}
-                </p>
-              ) : null}
-              <div className="sm:col-span-2">
-                <button type="submit" disabled={mutation.isPending} className={btn.primary}>
-                  {mutation.isPending ? "Saving..." : "Save subcontractor"}
-                </button>
-              </div>
-            </form>
-          </Panel>
-        ) : null}
-
-        <Panel>
-          <PanelHead title="All subcontractors" subtitle={`${subs.length} total`} />
-          {isLoading ? (
-            <p className="px-6 py-8 text-[15px] text-[#6b7280]">Loading...</p>
-          ) : subs.length === 0 ? (
-            <EmptyState
-              title="No subcontractors yet"
-              body="Add your first subcontractor, then send a secure link to collect their certificate."
-              action={
-                <button type="button" className={btn.primary} onClick={() => setShowForm(true)}>
-                  Add subcontractor
-                </button>
-              }
-            />
-          ) : (
-            <ul className="divide-y divide-border">
-              {subs.map((s) => {
-                const mine = requests.filter((r) => r.subcontractor_id === s.id);
-                const waiting = mine.filter((r) => r.status === "submitted").length;
-                return (
-                  <li key={s.id}>
-                    <Link
-                      to="/subcontractors/$id"
-                      params={{ id: s.id }}
-                      className="flex items-center justify-between gap-4 px-6 py-4 transition-colors hover:bg-surface-muted/60"
-                    >
-                      <div className="min-w-0">
-                        <p className="truncate text-[15px] font-semibold text-ink">{s.company}</p>
-                        <p className="truncate text-[13px] text-[#6b7280]">
-                          {[s.trade, s.project].filter(Boolean).join(" · ") || "No trade set"}
-                        </p>
-                      </div>
-                      <div className="flex shrink-0 items-center gap-3">
-                        {waiting ? (
-                          <span className="rounded-full bg-warning-soft px-2.5 py-1 text-[12px] font-semibold text-warning">
-                            {waiting} to review
-                          </span>
-                        ) : null}
-                        <span className="text-[13px] font-medium text-[#6b7280]">
-                          {mine.length} document{mine.length === 1 ? "" : "s"}
-                        </span>
-                      </div>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </Panel>
-      </div>
-    </AppShell>
-  );
+  return <AppShell title="Subcontractors" subtitle="Work through document gaps across your trade partner roster" actions={<button type="button" className={btn.primary} onClick={() => setShowAdd(!showAdd)}><Plus className="h-4 w-4" />Add subcontractor</button>}>
+    <div className="space-y-5">
+      {showAdd ? <Panel><form onSubmit={submitAdd} className="grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-5"><Field label="Company" htmlFor="company"><input id="company" name="company" className={inputClass} required /></Field><Field label="Trade" htmlFor="trade"><input id="trade" name="trade" className={inputClass} /></Field><Field label="Contact" htmlFor="contactName"><input id="contactName" name="contactName" className={inputClass} /></Field><Field label="Email" htmlFor="contactEmail"><input id="contactEmail" name="contactEmail" type="email" className={inputClass} /></Field><Field label="Phone" htmlFor="contactPhone"><input id="contactPhone" name="contactPhone" className={inputClass} /></Field><div className="lg:col-span-5"><button className={btn.primary} disabled={addMutation.isPending}>Save subcontractor</button></div></form></Panel> : null}
+      <Panel className="overflow-hidden"><div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-4"><div className="flex flex-1 flex-wrap items-center gap-2"><div className="relative min-w-[220px] flex-1 sm:max-w-[320px]"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><input aria-label="Search subcontractors" className={`${inputClass} pl-9`} placeholder="Search company or trade" value={search} onChange={(e) => setSearch(e.target.value)} /></div><select aria-label="Filter by readiness" className={`${inputClass} w-auto min-w-[150px]`} value={status} onChange={(e) => setStatus(e.target.value)}><option value="all">All statuses</option><option value="action">Needs action</option><option value="ready">Requirements satisfied</option></select></div>{selected.length ? <div className="flex flex-wrap gap-2"><button className={btn.ghost} onClick={() => setDialog("assign")}><FolderInput className="h-4 w-4" />Assign project</button><button className={btn.ghost} onClick={exportCsv}><Download className="h-4 w-4" />Export</button><button className={btn.primary} onClick={() => setDialog("request")}><Send className="h-4 w-4" />Request from {selected.length}</button></div> : null}</div>
+        {error ? <p role="alert" className="border-b border-border bg-brand-soft px-5 py-3 text-[11px] text-brand">{error}</p> : null}
+        {isLoading ? <p className="p-8 text-[12px] text-muted-foreground">Loading roster…</p> : subs.length ? <div className="overflow-x-auto"><table className="w-full min-w-[760px] text-left"><thead><tr className="bg-surface-muted text-[9px] font-bold text-muted-foreground"><th className="w-12 px-5 py-3"><Checkbox aria-label="Select all visible subcontractors" checked={subs.length > 0 && subs.every((s) => selected.includes(s.id))} onCheckedChange={(checked) => setSelected(checked ? subs.map((s) => s.id) : [])} /></th><th className="px-3 py-3">COMPANY</th><th className="px-3 py-3">TRADE</th><th className="px-3 py-3">DOCUMENT STATUS</th><th className="px-3 py-3">PROJECTS</th><th className="px-5 py-3 text-right">OPEN</th></tr></thead><tbody>{subs.map((sub) => { const docs = (data?.requests ?? []).filter((d) => d.subcontractor_id === sub.id); const approved = docs.filter((d) => d.status === "approved").length; const assignments = (data?.assignments ?? []).filter((a) => a.subcontractor_id === sub.id); return <tr key={sub.id} className="border-t border-border hover:bg-surface-muted/50"><td className="px-5 py-4"><Checkbox aria-label={`Select ${sub.company}`} checked={selected.includes(sub.id)} onCheckedChange={(checked) => setSelected(checked ? [...selected, sub.id] : selected.filter((id) => id !== sub.id))} /></td><td className="px-3 py-4"><p className="text-[12px] font-bold text-ink">{sub.company}</p><p className="mt-0.5 text-[9px] text-muted-foreground">{sub.contact_email || "No email"}</p></td><td className="px-3 py-4 text-[11px] text-ink">{sub.trade || "—"}</td><td className="px-3 py-4"><span className={`rounded-full px-2.5 py-1 text-[9px] font-bold ${docs.length > 0 && approved === docs.length ? "bg-success-soft text-success" : "bg-brand-soft text-brand"}`}>{docs.length > 0 && approved === docs.length ? "Document requirements satisfied" : `${docs.length - approved} need attention`}</span></td><td className="px-3 py-4 text-[10px] text-muted-foreground">{assignments.map((a) => data?.projects.find((p) => p.id === a.project_id)?.name).filter(Boolean).join(", ") || "Not assigned"}</td><td className="px-5 py-4 text-right"><Link to="/subcontractors/$id" params={{ id: sub.id }} className={btn.ghost}>Open</Link></td></tr>; })}</tbody></table></div> : <EmptyState title="No subcontractors yet" body="Add your first trade partner, assign upcoming work, and send a secure document request." />}
+      </Panel>
+    </div>
+    <Dialog open={dialog !== null} onOpenChange={(open) => { if (!open) setDialog(null); }}><DialogContent className="rounded-[18px] border-border bg-surface"><DialogHeader><DialogTitle>{dialog === "request" ? `Request documents from ${selected.length} subcontractors` : `Assign ${selected.length} subcontractors to a project`}</DialogTitle><DialogDescription>{dialog === "request" ? "Creates secure upload links and schedules the next follow-up. It does not mark the document complete." : "Add a planned start date so upcoming document gaps rise to the top."}</DialogDescription></DialogHeader>{dialog === "request" ? <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); const f = new FormData(e.currentTarget); requestMutation.mutate({ subcontractorIds: selected, docType: String(f.get("docType")), projectId: String(f.get("projectId") || "") || null, dueDate: String(f.get("dueDate") || "") }); }}><Field label="Document" htmlFor="docType"><select id="docType" name="docType" className={inputClass}>{DOC_TYPES.map((t) => <option key={t}>{t}</option>)}</select></Field><Field label="Project" htmlFor="projectId"><select id="projectId" name="projectId" className={inputClass}><option value="">No project</option>{data?.projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></Field><Field label="Due date" htmlFor="dueDate"><input id="dueDate" name="dueDate" type="date" className={inputClass} /></Field><button className={`${btn.primary} w-full`} disabled={requestMutation.isPending}><Send className="h-4 w-4" />Create secure requests</button></form> : <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); const f = new FormData(e.currentTarget); assignMutation.mutate({ subcontractorIds: selected, projectId: String(f.get("projectId")), plannedStartDate: String(f.get("plannedStartDate") || "") }); }}><Field label="Project" htmlFor="assignProject"><select id="assignProject" name="projectId" className={inputClass} required><option value="">Choose a project</option>{data?.projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}</select></Field><Field label="Planned start date" htmlFor="assignStart"><input id="assignStart" name="plannedStartDate" type="date" className={inputClass} /></Field><button className={`${btn.primary} w-full`} disabled={assignMutation.isPending}><FolderInput className="h-4 w-4" />Assign selected</button></form>}</DialogContent></Dialog>
+  </AppShell>;
 }
