@@ -51,13 +51,55 @@ export function Eyebrow({
   return (
     <p
       className={cn(
-        "text-[13px] font-bold tracking-[0.14em] uppercase",
-        tone === "brand" ? "text-brand" : "text-brand",
+        "flex items-center gap-3 text-[12px] font-bold tracking-[0.18em] uppercase",
+        tone === "brand" ? "text-brand" : "text-white/60",
         className,
       )}
     >
+      <span
+        aria-hidden="true"
+        className={cn("h-px w-8", tone === "brand" ? "bg-brand/40" : "bg-white/30")}
+      />
       {children}
     </p>
+  );
+}
+
+export function SectionHead({
+  eyebrow,
+  title,
+  children,
+  tone = "brand",
+  className,
+}: {
+  eyebrow: string;
+  title: ReactNode;
+  children?: ReactNode;
+  tone?: "brand" | "light";
+  className?: string;
+}) {
+  return (
+    <div className={cn("max-w-[620px]", className)}>
+      <Eyebrow tone={tone}>{eyebrow}</Eyebrow>
+      <h2
+        className={cn(
+          "mt-6 text-[clamp(30px,4.2vw,46px)] leading-[1.06]",
+          tone === "light" && "text-white",
+        )}
+      >
+        {title}
+      </h2>
+      {children ? (
+        <div
+          className={cn(
+            "mt-6 max-w-[52ch] text-[17px] leading-[1.65]",
+            tone === "light" ? "text-white/70" : "text-[#374151]",
+          )}
+        >
+          {children}
+        </div>
+      ) : null}
+    </div>
   );
 }
 
