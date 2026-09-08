@@ -1,5 +1,9 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { CreditCard, FileText, UserRound } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { CreditCard, FileText, Sparkles, UserRound } from "lucide-react";
+
+import { getPlatformAccess } from "@/lib/app.functions";
 
 const links = [
   { label: "Account", to: "/settings", icon: UserRound },
@@ -9,12 +13,27 @@ const links = [
 
 export function SettingsNav() {
   const path = useRouterState({ select: (state) => state.location.pathname });
+  const loadAccess = useServerFn(getPlatformAccess);
+  const { data } = useQuery({
+    queryKey: ["platform-access"],
+    queryFn: () => loadAccess(),
+    retry: false,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const items = [
+    ...links,
+    ...(data?.isPlatformAdmin
+      ? ([{ label: "Pilot signups", to: "/pilot-signups", icon: Sparkles }] as const)
+      : []),
+  ];
+
   return (
     <nav
       aria-label="Account settings"
       className="flex gap-1 overflow-x-auto border-b border-border"
     >
-      {links.map((item) => (
+      {items.map((item) => (
         <Link
           key={item.to}
           to={item.to}
