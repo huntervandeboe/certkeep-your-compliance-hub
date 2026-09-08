@@ -45,14 +45,14 @@ export function Eyebrow({
   return (
     <p
       className={cn(
-        "flex items-center gap-3 text-[12px] font-bold tracking-[0.18em] uppercase",
+        "flex items-start gap-3 text-[12px] font-bold tracking-[0.18em] uppercase",
         tone === "brand" ? "text-brand" : "text-white/60",
         className,
       )}
     >
       <span
         aria-hidden="true"
-        className={cn("h-px w-8", tone === "brand" ? "bg-brand/40" : "bg-white/30")}
+        className={cn("mt-[0.55em] h-px w-8 shrink-0", tone === "brand" ? "bg-brand/40" : "bg-white/30")}
       />
       {children}
     </p>
