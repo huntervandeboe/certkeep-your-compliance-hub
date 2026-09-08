@@ -58,6 +58,9 @@ function BillingPage() {
                   <CreditCard className="h-4 w-4" />
                   Checkout not enabled
                 </button>
+                <Link to="/onboarding" className={btn.ghost}>
+                  Start pilot setup
+                </Link>
                 <Link to="/pricing" className={btn.ghost}>
                   Compare plan details
                 </Link>
@@ -76,7 +79,8 @@ function BillingPage() {
               <div className="mt-5 flex gap-2 border-t border-border pt-4">
                 <ShieldCheck className="h-4 w-4 shrink-0 text-brand" />
                 <p className="text-[10px] leading-4 text-muted-foreground">
-                  Payment setup will be added only when you choose to activate checkout.
+                  Payment setup will be added only when you choose to activate checkout. Pilot setup
+                  creates your first project, trade partner, and real upload links.
                 </p>
               </div>
             </div>

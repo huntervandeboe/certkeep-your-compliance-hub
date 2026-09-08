@@ -29,11 +29,7 @@ export const Route = createFileRoute("/_authenticated/onboarding")({
   }),
 });
 
-const DEFAULT_DOCS = [
-  "General Liability Certificate",
-  "Workers Compensation Certificate",
-  "W-9",
-];
+const DEFAULT_DOCS = ["General Liability Certificate", "Workers Compensation Certificate", "W-9"];
 
 type Result = Awaited<ReturnType<typeof completeOnboarding>>;
 
@@ -113,7 +109,9 @@ function OnboardingPage() {
   });
 
   const linkFor = (token: string) =>
-    typeof window === "undefined" ? `/upload/${token}` : `${window.location.origin}/upload/${token}`;
+    typeof window === "undefined"
+      ? `/upload/${token}`
+      : `${window.location.origin}/upload/${token}`;
 
   async function copy(token: string, id: string) {
     const url = linkFor(token);
@@ -210,11 +208,7 @@ function OnboardingPage() {
               <Link to="/dashboard" className={btn.ghost}>
                 Go to today’s queue <ArrowRight className="h-4 w-4" />
               </Link>
-              <Link
-                to="/projects/$id"
-                params={{ id: result.projectId }}
-                className={btn.ghost}
-              >
+              <Link to="/projects/$id" params={{ id: result.projectId }} className={btn.ghost}>
                 View project readiness
               </Link>
             </div>
