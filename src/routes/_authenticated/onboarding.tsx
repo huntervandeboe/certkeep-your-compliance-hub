@@ -12,13 +12,13 @@ export const Route = createFileRoute("/_authenticated/onboarding")({
   component: OnboardingPage,
   head: () => ({
     meta: [
-      { title: "Pilot setup | CertKeep" },
+      { title: "Quick setup | CertKeep" },
       {
         name: "description",
         content:
           "Set up your first project, trade partner, and secure mobile upload links in a few minutes.",
       },
-      { property: "og:title", content: "Pilot setup | CertKeep" },
+      { property: "og:title", content: "Quick setup | CertKeep" },
       {
         property: "og:description",
         content: "Create your first project and send real upload links to a subcontractor.",
@@ -227,7 +227,7 @@ function OnboardingPage() {
   }
 
   return (
-    <AppShell title="Pilot setup" subtitle="Three short steps and your queue has real work in it.">
+    <AppShell title="Quick setup" subtitle="Three short steps and your queue has real work in it.">
       <Panel className="p-6">
         <StepHeader step={step} current={step} />
 

@@ -31,7 +31,7 @@ function InvoicesPage() {
               <div>
                 <h2 className="text-[17px]">No charges have been created</h2>
                 <p className="mt-1 text-[11px] text-muted-foreground">
-                  Your pilot access has no invoices or receipts.
+                  Your account has no invoices or receipts yet.
                 </p>
               </div>
             </div>
@@ -51,7 +51,7 @@ function InvoicesPage() {
           </div>
           <div className="rounded-xl border border-border bg-surface-muted p-5">
             <p className="text-[10px] font-bold text-muted-foreground">BILLING STATUS</p>
-            <p className="mt-2 text-[15px] font-bold text-ink">Pilot access</p>
+            <p className="mt-2 text-[15px] font-bold text-ink">Free access</p>
             <p className="mt-2 text-[11px] leading-5 text-muted-foreground">
               No payment method, upcoming charge, or invoice is associated with this workspace.
             </p>

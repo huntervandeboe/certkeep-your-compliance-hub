@@ -754,7 +754,7 @@ export const submitUpload = createServerFn({ method: "POST" })
   });
 
 /* ------------------------------------------------------------------ */
-/* Pilot onboarding: first project, first subcontractor, first links   */
+/* Onboarding: first project, first subcontractor, first links   */
 /* ------------------------------------------------------------------ */
 
 const optionalDate = z
@@ -872,7 +872,7 @@ export const completeOnboarding = createServerFn({ method: "POST" })
       event_type: "workspace.onboarded",
       entity_type: "project",
       entity_id: project.id,
-      title: `Pilot setup complete for ${project.name}`,
+      title: `Setup complete for ${project.name}`,
       detail: `${created.length} secure upload links created for ${sub.company}`,
     });
 

@@ -33,13 +33,13 @@ function BillingPage() {
           <div className="grid gap-6 p-6 lg:grid-cols-[minmax(0,1fr)_330px]">
             <div>
               <div className="flex flex-wrap items-center gap-3">
-                <h2 className="text-[18px]">Pilot access</h2>
+                <h2 className="text-[18px]">Free access</h2>
                 <span className="rounded-full bg-success-soft px-2.5 py-1 text-[10px] font-bold text-success">
                   Active
                 </span>
               </div>
               <p className="mt-2 max-w-[60ch] text-[12px] leading-5 text-muted-foreground">
-                Your workspace currently has pilot access. No payment method is stored and no
+                Your workspace currently has free access. No payment method is stored and no
                 automatic charge is scheduled.
               </p>
               <div className="mt-6 grid gap-3 sm:grid-cols-2">
@@ -59,7 +59,7 @@ function BillingPage() {
                   Checkout not enabled
                 </button>
                 <Link to="/onboarding" className={btn.ghost}>
-                  Start pilot setup
+                  Start quick setup
                 </Link>
                 <Link to="/pricing" className={btn.ghost}>
                   Compare plan details
@@ -79,7 +79,7 @@ function BillingPage() {
               <div className="mt-5 flex gap-2 border-t border-border pt-4">
                 <ShieldCheck className="h-4 w-4 shrink-0 text-brand" />
                 <p className="text-[10px] leading-4 text-muted-foreground">
-                  Payment setup will be added only when you choose to activate checkout. Pilot setup
+                  Payment setup will be added only when you choose to activate checkout. Quick setup
                   creates your first project, trade partner, and real upload links.
                 </p>
               </div>

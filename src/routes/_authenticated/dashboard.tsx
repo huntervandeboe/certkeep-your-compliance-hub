@@ -305,7 +305,7 @@ function DashboardPage() {
                   </p>
                   <div className="mt-5 flex flex-wrap gap-2">
                     <Link to="/onboarding" className={btn.primary}>
-                      <Plus className="h-4 w-4" /> Start pilot setup
+                      <Plus className="h-4 w-4" /> Start quick setup
                     </Link>
                     <Link to="/subcontractors" search={{ bulk: undefined }} className={btn.ghost}>
                       Add subcontractor
