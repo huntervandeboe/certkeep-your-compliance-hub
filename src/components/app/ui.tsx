@@ -95,9 +95,9 @@ export const inputClass =
 
 export const btn = {
   primary:
-     "inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-[13px] font-bold text-white shadow-[0_8px_20px_-10px_rgba(240,90,40,.7)] transition-all hover:-translate-y-px hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60",
+    "inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-[13px] font-bold text-white shadow-[0_8px_20px_-10px_rgba(240,90,40,.7)] transition-all hover:-translate-y-px hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60",
   ghost:
-     "inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 py-2.5 text-[13px] font-bold text-ink transition-colors hover:border-ink/25 hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-60",
+    "inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 py-2.5 text-[13px] font-bold text-ink transition-colors hover:border-ink/25 hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-60",
   subtle:
     "inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-[14px] font-semibold text-[#4b5563] transition-colors hover:bg-surface-muted hover:text-ink",
 };

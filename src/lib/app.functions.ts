@@ -18,10 +18,7 @@ export const DOC_TYPES = [
 
 export type DocStatus = "pending" | "submitted" | "approved" | "rejected";
 
-async function ensureWorkspace(context: {
-  userId: string;
-  claims: unknown;
-}) {
+async function ensureWorkspace(context: { userId: string; claims: unknown }) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data: existing } = await supabaseAdmin
     .from("workspace_members")
@@ -143,7 +140,9 @@ export const getCommandCenter = createServerFn({ method: "GET" })
             .order("created_at", { ascending: false }),
           context.supabase
             .from("document_requests")
-            .select("id, subcontractor_id, doc_type, status, expiration_date, submitted_at, created_at")
+            .select(
+              "id, subcontractor_id, doc_type, status, expiration_date, submitted_at, created_at",
+            )
             .order("created_at", { ascending: false }),
         ]),
       ]);
@@ -165,11 +164,13 @@ export const getCommandCenter = createServerFn({ method: "GET" })
 export const createProject = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d: unknown) =>
-    z.object({
-      name: z.string().trim().min(2, "Enter a project name").max(160),
-      code: z.string().trim().max(40).optional().default(""),
-      location: z.string().trim().max(180).optional().default(""),
-    }).parse(d),
+    z
+      .object({
+        name: z.string().trim().min(2, "Enter a project name").max(160),
+        code: z.string().trim().max(40).optional().default(""),
+        location: z.string().trim().max(180).optional().default(""),
+      })
+      .parse(d),
   )
   .handler(async ({ data, context }) => {
     const membership = await ensureWorkspace(context);
