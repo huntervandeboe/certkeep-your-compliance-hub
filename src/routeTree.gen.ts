@@ -16,6 +16,7 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedSubcontractorsIndexRouteImport } from './routes/_authenticated/subcontractors.index'
+import { Route as AuthenticatedSubcontractorsIdRouteImport } from './routes/_authenticated/subcontractors.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -52,6 +53,12 @@ const AuthenticatedSubcontractorsIndexRoute =
     path: '/subcontractors/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedSubcontractorsIdRoute =
+  AuthenticatedSubcontractorsIdRouteImport.update({
+    id: '/subcontractors/$id',
+    path: '/subcontractors/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -59,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/subcontractors/$id': typeof AuthenticatedSubcontractorsIdRoute
   '/subcontractors/': typeof AuthenticatedSubcontractorsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -67,6 +75,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/subcontractors/$id': typeof AuthenticatedSubcontractorsIdRoute
   '/subcontractors': typeof AuthenticatedSubcontractorsIndexRoute
 }
 export interface FileRoutesById {
@@ -77,14 +86,28 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/subcontractors/$id': typeof AuthenticatedSubcontractorsIdRoute
   '/_authenticated/subcontractors/': typeof AuthenticatedSubcontractorsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/auth' | '/privacy' | '/terms' | '/dashboard' | '/subcontractors/'
+    | '/'
+    | '/auth'
+    | '/privacy'
+    | '/terms'
+    | '/dashboard'
+    | '/subcontractors/$id'
+    | '/subcontractors/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/privacy' | '/terms' | '/dashboard' | '/subcontractors'
+  to:
+    | '/'
+    | '/auth'
+    | '/privacy'
+    | '/terms'
+    | '/dashboard'
+    | '/subcontractors/$id'
+    | '/subcontractors'
   id:
     | '__root__'
     | '/'
@@ -93,6 +116,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/terms'
     | '/_authenticated/dashboard'
+    | '/_authenticated/subcontractors/$id'
     | '/_authenticated/subcontractors/'
   fileRoutesById: FileRoutesById
 }
@@ -155,16 +179,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSubcontractorsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/subcontractors/$id': {
+      id: '/_authenticated/subcontractors/$id'
+      path: '/subcontractors/$id'
+      fullPath: '/subcontractors/$id'
+      preLoaderRoute: typeof AuthenticatedSubcontractorsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedSubcontractorsIdRoute: typeof AuthenticatedSubcontractorsIdRoute
   AuthenticatedSubcontractorsIndexRoute: typeof AuthenticatedSubcontractorsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedSubcontractorsIdRoute: AuthenticatedSubcontractorsIdRoute,
   AuthenticatedSubcontractorsIndexRoute: AuthenticatedSubcontractorsIndexRoute,
 }
 
