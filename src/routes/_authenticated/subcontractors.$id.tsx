@@ -137,7 +137,7 @@ function SubcontractorDetail() {
       {isLoading ? (
         <p className="text-[15px] text-[#6b7280]">Loading...</p>
       ) : (
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
           <Panel>
             <PanelHead title="Documents" subtitle={`${requests.length} requested`} />
             {error ? (
