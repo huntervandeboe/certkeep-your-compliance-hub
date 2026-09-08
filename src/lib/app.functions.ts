@@ -361,7 +361,8 @@ export const createDocumentRequest = createServerFn({ method: "POST" })
           .string()
           .regex(/^\d{4}-\d{2}-\d{2}$/)
           .optional()
-          .nullable(),
+          .nullable()
+          .or(z.literal("")),
       })
       .parse(d),
   )
@@ -380,7 +381,7 @@ export const createDocumentRequest = createServerFn({ method: "POST" })
         token: randomToken(),
         project_id: data.projectId ?? null,
         requirement_id: data.requirementId ?? null,
-        due_date: data.dueDate ?? null,
+        due_date: data.dueDate || null,
         assigned_to_user_id: context.userId,
         last_requested_at: now.toISOString(),
         next_reminder_at: nextReminder.toISOString(),
@@ -432,7 +433,8 @@ export const bulkCreateDocumentRequests = createServerFn({ method: "POST" })
           .string()
           .regex(/^\d{4}-\d{2}-\d{2}$/)
           .optional()
-          .nullable(),
+          .nullable()
+          .or(z.literal("")),
       })
       .parse(d),
   )
@@ -453,7 +455,7 @@ export const bulkCreateDocumentRequests = createServerFn({ method: "POST" })
       doc_type: data.docType,
       token: randomToken(),
       project_id: data.projectId ?? null,
-      due_date: data.dueDate ?? null,
+      due_date: data.dueDate || null,
       assigned_to_user_id: context.userId,
       last_requested_at: now.toISOString(),
       next_reminder_at: nextReminder.toISOString(),
@@ -555,7 +557,8 @@ export const assignSubcontractorsToProject = createServerFn({ method: "POST" })
           .string()
           .regex(/^\d{4}-\d{2}-\d{2}$/)
           .optional()
-          .nullable(),
+          .nullable()
+          .or(z.literal("")),
       })
       .parse(d),
   )
@@ -565,7 +568,7 @@ export const assignSubcontractorsToProject = createServerFn({ method: "POST" })
       workspace_id: membership.workspace_id,
       project_id: data.projectId,
       subcontractor_id: id,
-      planned_start_date: data.plannedStartDate ?? null,
+      planned_start_date: data.plannedStartDate || null,
     }));
     const { error } = await context.supabase
       .from("project_subcontractors")

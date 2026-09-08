@@ -67,7 +67,14 @@ function SubcontractorDetail() {
   };
 
   const createReq = useMutation({
-    mutationFn: (values: { subcontractorId: string; docType: string; notes: string }) =>
+    mutationFn: (values: {
+      subcontractorId: string;
+      docType: string;
+      notes: string;
+      projectId: null;
+      requirementId: null;
+      dueDate: null;
+    }) =>
       requestDoc({ data: values }),
     onSuccess: () => {
       setError("");
@@ -115,6 +122,9 @@ function SubcontractorDetail() {
       subcontractorId: id,
       docType: String(f.get("docType") ?? ""),
       notes: String(f.get("notes") ?? "").trim(),
+      projectId: null,
+      requirementId: null,
+      dueDate: null,
     });
     e.currentTarget.reset();
   }

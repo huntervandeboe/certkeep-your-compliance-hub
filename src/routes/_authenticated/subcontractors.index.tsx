@@ -54,7 +54,7 @@ function SubcontractorsPage() {
   const assign = useServerFn(assignSubcontractorsToProject);
   const { data, isLoading } = useQuery({ queryKey: ["workspace"], queryFn: () => load() });
   const [showAdd, setShowAdd] = useState(false);
-  const [dialog, setDialog] = useState<"request" | "assign" | null>(initial.bulk ?? null);
+  const [dialog, setDialog] = useState<"request" | "assign" | null>(null);
   const [selected, setSelected] = useState<string[]>([]);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
@@ -72,6 +72,7 @@ function SubcontractorsPage() {
         }),
     [data, search, status],
   );
+  const requestHint = initial.bulk === "request" && selected.length === 0;
   const refresh = () => {
     setSelected([]);
     setDialog(null);
@@ -219,6 +220,14 @@ function SubcontractorsPage() {
               </div>
             ) : null}
           </div>
+          {requestHint ? (
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-warning-soft px-5 py-3">
+              <p className="text-[11px] font-semibold text-warning">
+                Select one or more subcontractors, then choose “Request from selected.”
+              </p>
+              <Send className="h-4 w-4 text-warning" />
+            </div>
+          ) : null}
           {error ? (
             <p
               role="alert"
