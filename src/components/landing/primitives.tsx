@@ -52,7 +52,10 @@ export function Eyebrow({
     >
       <span
         aria-hidden="true"
-        className={cn("mt-[0.55em] h-px w-8 shrink-0", tone === "brand" ? "bg-brand/40" : "bg-white/30")}
+        className={cn(
+          "mt-[0.55em] h-px w-8 shrink-0",
+          tone === "brand" ? "bg-brand/40" : "bg-white/30",
+        )}
       />
       {children}
     </p>
