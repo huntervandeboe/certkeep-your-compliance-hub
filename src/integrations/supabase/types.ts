@@ -14,6 +14,71 @@ export type Database = {
   }
   public: {
     Tables: {
+      document_requests: {
+        Row: {
+          created_at: string
+          doc_type: string
+          expiration_date: string | null
+          file_name: string | null
+          file_path: string | null
+          id: string
+          notes: string | null
+          owner_id: string
+          rejection_reason: string | null
+          reviewed_at: string | null
+          status: Database["public"]["Enums"]["doc_status"]
+          subcontractor_id: string
+          submitted_at: string | null
+          token: string
+          token_expires_at: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          doc_type: string
+          expiration_date?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          id?: string
+          notes?: string | null
+          owner_id: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          status?: Database["public"]["Enums"]["doc_status"]
+          subcontractor_id: string
+          submitted_at?: string | null
+          token: string
+          token_expires_at?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          doc_type?: string
+          expiration_date?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          id?: string
+          notes?: string | null
+          owner_id?: string
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          status?: Database["public"]["Enums"]["doc_status"]
+          subcontractor_id?: string
+          submitted_at?: string | null
+          token?: string
+          token_expires_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_requests_subcontractor_id_fkey"
+            columns: ["subcontractor_id"]
+            isOneToOne: false
+            referencedRelation: "subcontractors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pilot_applications: {
         Row: {
           biggest_problem: string | null
@@ -56,6 +121,69 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          company_name: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          company_name?: string | null
+          created_at?: string
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          company_name?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      subcontractors: {
+        Row: {
+          company: string
+          contact_email: string | null
+          contact_name: string | null
+          contact_phone: string | null
+          created_at: string
+          id: string
+          owner_id: string
+          project: string | null
+          trade: string | null
+          updated_at: string
+        }
+        Insert: {
+          company: string
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          owner_id: string
+          project?: string | null
+          trade?: string | null
+          updated_at?: string
+        }
+        Update: {
+          company?: string
+          contact_email?: string | null
+          contact_name?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          owner_id?: string
+          project?: string | null
+          trade?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -64,7 +192,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      doc_status: "pending" | "submitted" | "approved" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -191,6 +319,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      doc_status: ["pending", "submitted", "approved", "rejected"],
+    },
   },
 } as const
