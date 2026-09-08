@@ -8,3 +8,7 @@
 - [ ] Build Reports, Integrations, Team, and Settings pages
 - [ ] Improve the public upload experience
 - [ ] Verify permissions, routes, desktop/mobile rendering, and key workflow
+- [ ] Make the overview a prioritized daily work queue
+- [ ] Add fast side-by-side document review with next-task flow
+- [ ] Add bulk document requests and subcontractor bulk actions
+- [ ] Add upcoming-start project readiness and follow-up tracking
