@@ -44,8 +44,8 @@ export const getWorkspace = createServerFn({ method: "GET" })
     if (!profile) {
       await supabase.from("profiles").insert({
         id: userId,
-        full_name: (claims as { user_metadata?: { full_name?: string } })?.user_metadata
-          ?.full_name ?? null,
+        full_name:
+          (claims as { user_metadata?: { full_name?: string } })?.user_metadata?.full_name ?? null,
       });
     }
 
@@ -56,9 +56,7 @@ export const getWorkspace = createServerFn({ method: "GET" })
         .order("created_at", { ascending: false }),
       supabase
         .from("document_requests")
-        .select(
-          "id, subcontractor_id, doc_type, status, expiration_date, submitted_at, created_at",
-        )
+        .select("id, subcontractor_id, doc_type, status, expiration_date, submitted_at, created_at")
         .order("created_at", { ascending: false }),
     ]);
 

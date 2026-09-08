@@ -137,7 +137,7 @@ function SubcontractorDetail() {
       {isLoading ? (
         <p className="text-[15px] text-[#6b7280]">Loading...</p>
       ) : (
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
           <Panel>
             <PanelHead title="Documents" subtitle={`${requests.length} requested`} />
             {error ? (
@@ -264,7 +264,11 @@ function SubcontractorDetail() {
                 <Field label="Note to subcontractor" htmlFor="notes" hint="Optional">
                   <textarea id="notes" name="notes" rows={3} className={inputClass} />
                 </Field>
-                <button type="submit" className={`${btn.primary} w-full`} disabled={createReq.isPending}>
+                <button
+                  type="submit"
+                  className={`${btn.primary} w-full`}
+                  disabled={createReq.isPending}
+                >
                   {createReq.isPending ? "Creating..." : "Create secure link"}
                 </button>
               </form>

@@ -58,9 +58,7 @@ function DashboardPage() {
   const approved = requests.filter((r) => r.status === "approved");
   const needsReview = requests.filter((r) => r.status === "submitted");
   const pending = requests.filter((r) => r.status === "pending");
-  const score = requests.length
-    ? Math.round((approved.length / requests.length) * 100)
-    : 0;
+  const score = requests.length ? Math.round((approved.length / requests.length) * 100) : 0;
 
   const soon = approved.filter((r) => {
     if (!r.expiration_date) return false;

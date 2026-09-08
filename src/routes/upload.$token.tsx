@@ -186,7 +186,10 @@ function UploadPage() {
         </Field>
 
         {error ? (
-          <p className="rounded-xl bg-brand-soft px-3.5 py-3 text-[14px] text-brand-hover" role="alert">
+          <p
+            className="rounded-xl bg-brand-soft px-3.5 py-3 text-[14px] text-brand-hover"
+            role="alert"
+          >
             {error}
           </p>
         ) : null}

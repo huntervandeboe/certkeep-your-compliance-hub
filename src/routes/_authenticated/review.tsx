@@ -52,7 +52,10 @@ function ReviewPage() {
         ) : (
           <ul className="divide-y divide-border">
             {requests.map((r) => (
-              <li key={r.id} className="flex flex-wrap items-center justify-between gap-3 px-6 py-4">
+              <li
+                key={r.id}
+                className="flex flex-wrap items-center justify-between gap-3 px-6 py-4"
+              >
                 <div className="min-w-0">
                   <p className="truncate text-[15px] font-semibold text-ink">
                     {nameFor(r.subcontractor_id)}
