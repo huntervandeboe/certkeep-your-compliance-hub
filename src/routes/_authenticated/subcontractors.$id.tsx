@@ -74,8 +74,7 @@ function SubcontractorDetail() {
       projectId: null;
       requirementId: null;
       dueDate: null;
-    }) =>
-      requestDoc({ data: values }),
+    }) => requestDoc({ data: values }),
     onSuccess: () => {
       setError("");
       refresh();

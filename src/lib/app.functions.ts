@@ -396,28 +396,24 @@ export const createDocumentRequest = createServerFn({ method: "POST" })
       .eq("id", data.subcontractorId)
       .single();
     if (sub?.contact_email) {
-      await context.supabase
-        .from("reminder_events")
-        .insert({
-          workspace_id: membership.workspace_id,
-          document_request_id: row.id,
-          recipient_email: sub.contact_email,
-          status: "scheduled",
-          scheduled_for: nextReminder.toISOString(),
-          created_by: context.userId,
-        });
-    }
-    await context.supabase
-      .from("activity_events")
-      .insert({
+      await context.supabase.from("reminder_events").insert({
         workspace_id: membership.workspace_id,
-        actor_user_id: context.userId,
-        event_type: "request.sent",
-        entity_type: "document_request",
-        entity_id: row.id,
-        title: `Requested ${data.docType} from ${sub?.company ?? "subcontractor"}`,
-        detail: "Secure upload link created",
+        document_request_id: row.id,
+        recipient_email: sub.contact_email,
+        status: "scheduled",
+        scheduled_for: nextReminder.toISOString(),
+        created_by: context.userId,
       });
+    }
+    await context.supabase.from("activity_events").insert({
+      workspace_id: membership.workspace_id,
+      actor_user_id: context.userId,
+      event_type: "request.sent",
+      entity_type: "document_request",
+      entity_id: row.id,
+      title: `Requested ${data.docType} from ${sub?.company ?? "subcontractor"}`,
+      detail: "Secure upload link created",
+    });
     return { id: row.id, token: row.token };
   });
 
@@ -481,16 +477,14 @@ export const bulkCreateDocumentRequests = createServerFn({ method: "POST" })
         : [];
     });
     if (reminders.length) await context.supabase.from("reminder_events").insert(reminders);
-    await context.supabase
-      .from("activity_events")
-      .insert({
-        workspace_id: membership.workspace_id,
-        actor_user_id: context.userId,
-        event_type: "request.bulk_sent",
-        entity_type: "document_request",
-        title: `${created.length} document requests created`,
-        detail: data.docType,
-      });
+    await context.supabase.from("activity_events").insert({
+      workspace_id: membership.workspace_id,
+      actor_user_id: context.userId,
+      event_type: "request.bulk_sent",
+      entity_type: "document_request",
+      title: `${created.length} document requests created`,
+      detail: data.docType,
+    });
     return {
       created: created.length,
       links: created.map((item) => ({ subcontractorId: item.subcontractor_id, token: item.token })),
@@ -522,27 +516,23 @@ export const sendRequestFollowUp = createServerFn({ method: "POST" })
       .eq("id", data.id);
     if (error) throw new Error("Could not record that follow-up.");
     if (sub?.contact_email)
-      await context.supabase
-        .from("reminder_events")
-        .insert({
-          workspace_id: membership.workspace_id,
-          document_request_id: data.id,
-          recipient_email: sub.contact_email,
-          status: "scheduled",
-          scheduled_for: next.toISOString(),
-          created_by: context.userId,
-        });
-    await context.supabase
-      .from("activity_events")
-      .insert({
+      await context.supabase.from("reminder_events").insert({
         workspace_id: membership.workspace_id,
-        actor_user_id: context.userId,
-        event_type: "request.follow_up",
-        entity_type: "document_request",
-        entity_id: data.id,
-        title: `Follow-up recorded for ${sub?.company ?? "subcontractor"}`,
-        detail: `${request.doc_type} remains outstanding`,
+        document_request_id: data.id,
+        recipient_email: sub.contact_email,
+        status: "scheduled",
+        scheduled_for: next.toISOString(),
+        created_by: context.userId,
       });
+    await context.supabase.from("activity_events").insert({
+      workspace_id: membership.workspace_id,
+      actor_user_id: context.userId,
+      event_type: "request.follow_up",
+      entity_type: "document_request",
+      entity_id: data.id,
+      title: `Follow-up recorded for ${sub?.company ?? "subcontractor"}`,
+      detail: `${request.doc_type} remains outstanding`,
+    });
     return { ok: true as const };
   });
 
@@ -591,15 +581,13 @@ export const createRequirement = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const membership = await ensureWorkspace(context);
-    const { error } = await context.supabase
-      .from("compliance_requirements")
-      .insert({
-        workspace_id: membership.workspace_id,
-        project_id: data.projectId,
-        name: data.name,
-        document_type: data.documentType,
-        trade: data.trade || null,
-      });
+    const { error } = await context.supabase.from("compliance_requirements").insert({
+      workspace_id: membership.workspace_id,
+      project_id: data.projectId,
+      name: data.name,
+      document_type: data.documentType,
+      trade: data.trade || null,
+    });
     if (error) throw new Error("Could not add that requirement.");
     return { ok: true as const };
   });
@@ -639,17 +627,15 @@ export const reviewDocumentRequest = createServerFn({ method: "POST" })
         .select("company")
         .eq("id", before.subcontractor_id)
         .single();
-      await context.supabase
-        .from("activity_events")
-        .insert({
-          workspace_id: membership.workspace_id,
-          actor_user_id: context.userId,
-          event_type: `document.${data.action === "approve" ? "approved" : "correction_requested"}`,
-          entity_type: "document_request",
-          entity_id: data.id,
-          title: `${before.doc_type} ${data.action === "approve" ? "approved" : "sent back for correction"}`,
-          detail: sub?.company ?? null,
-        });
+      await context.supabase.from("activity_events").insert({
+        workspace_id: membership.workspace_id,
+        actor_user_id: context.userId,
+        event_type: `document.${data.action === "approve" ? "approved" : "correction_requested"}`,
+        entity_type: "document_request",
+        entity_id: data.id,
+        title: `${before.doc_type} ${data.action === "approve" ? "approved" : "sent back for correction"}`,
+        detail: sub?.company ?? null,
+      });
     }
     return { ok: true as const };
   });
