@@ -936,12 +936,16 @@ export const updatePilotApplication = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await assertPlatformAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const patch: Record<string, unknown> = {};
+    const patch: {
+      status?: string;
+      contacted_at?: string;
+      notes?: string;
+    } = {};
     if (data.status) {
-      patch['status'] = data.status;
-      if (data.status === "contacted") patch['contacted_at'] = new Date().toISOString();
+      patch.status = data.status;
+      if (data.status === "contacted") patch.contacted_at = new Date().toISOString();
     }
-    if (data.notes !== undefined) patch['notes'] = data.notes;
+    if (data.notes !== undefined) patch.notes = data.notes;
     const { error } = await supabaseAdmin
       .from("pilot_applications")
       .update(patch)

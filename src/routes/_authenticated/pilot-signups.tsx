@@ -151,12 +151,16 @@ function PilotSignupsPage() {
         </Panel>
 
         <Panel>
-          <PanelHead title="Applications" subtitle={`${rows.length} shown`}>
-            <button className={btn.ghost} onClick={exportCsv} disabled={rows.length === 0}>
-              <Download className="h-4 w-4" />
-              Export CSV
-            </button>
-          </PanelHead>
+          <PanelHead
+            title="Applications"
+            subtitle={`${rows.length} shown`}
+            action={
+              <button className={btn.ghost} onClick={exportCsv} disabled={rows.length === 0}>
+                <Download className="h-4 w-4" />
+                Export CSV
+              </button>
+            }
+          />
 
           <div className="flex flex-wrap items-center gap-2 border-b border-border px-5 py-3">
             <div className="relative min-w-[220px] flex-1">
