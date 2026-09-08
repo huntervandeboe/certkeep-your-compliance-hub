@@ -270,12 +270,15 @@ export type Database = {
         Row: {
           biggest_problem: string | null
           company: string
+          contacted_at: string | null
           created_at: string
           full_name: string
           id: string
           job_title: string | null
+          notes: string | null
           phone: string | null
           state: string | null
+          status: string
           subcontractor_count: string | null
           tracking_method: string | null
           work_email: string
@@ -283,12 +286,15 @@ export type Database = {
         Insert: {
           biggest_problem?: string | null
           company: string
+          contacted_at?: string | null
           created_at?: string
           full_name: string
           id?: string
           job_title?: string | null
+          notes?: string | null
           phone?: string | null
           state?: string | null
+          status?: string
           subcontractor_count?: string | null
           tracking_method?: string | null
           work_email: string
@@ -296,15 +302,33 @@ export type Database = {
         Update: {
           biggest_problem?: string | null
           company?: string
+          contacted_at?: string | null
           created_at?: string
           full_name?: string
           id?: string
           job_title?: string | null
+          notes?: string | null
           phone?: string | null
           state?: string | null
+          status?: string
           subcontractor_count?: string | null
           tracking_method?: string | null
           work_email?: string
+        }
+        Relationships: []
+      }
+      platform_admins: {
+        Row: {
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          user_id?: string
         }
         Relationships: []
       }
