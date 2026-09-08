@@ -88,32 +88,81 @@ function AuthPage() {
   }
 
   return (
-    <main className="grid min-h-screen lg:grid-cols-[1fr_minmax(0,520px)]">
-      <div className="hidden flex-col justify-between bg-ink p-12 lg:flex">
-        <Link to="/" className="flex items-center gap-2.5 text-white">
+    <main className="grid min-h-screen lg:grid-cols-[1.1fr_1fr]">
+      <div className="relative hidden flex-col justify-between overflow-hidden bg-ink p-12 lg:flex">
+        <div
+          className="pointer-events-none absolute -top-32 -right-32 h-96 w-96 rounded-full bg-brand/20 blur-3xl"
+          aria-hidden
+        />
+        <div
+          className="pointer-events-none absolute -bottom-40 -left-24 h-96 w-96 rounded-full bg-white/5 blur-3xl"
+          aria-hidden
+        />
+        <Link to="/" className="relative flex items-center gap-2.5 text-white">
           <LogoMark className="h-6 w-6" />
           <span className="font-display text-[18px] font-bold">CertKeep</span>
         </Link>
-        <div className="max-w-[34ch]">
-          <h1 className="font-display text-[40px] leading-[1.08] font-bold text-white">
+
+        <div className="relative max-w-[36ch]">
+          <h1 className="font-display text-[42px] leading-[1.06] font-bold tracking-[-0.02em] text-white">
             One link. No accounts. Every certificate tracked.
           </h1>
           <p className="mt-5 text-[16px] leading-relaxed text-white/65">
             Request a document, let the subcontractor upload it from their phone, approve it, and
             watch the expiration date for you.
           </p>
+
+          <div className="mt-10 rounded-2xl border border-white/10 bg-white/[0.04] p-5 shadow-2xl backdrop-blur">
+            <div className="flex items-center justify-between">
+              <p className="text-[11px] font-semibold tracking-[0.14em] text-white/50 uppercase">
+                Compliance board
+              </p>
+              <span className="rounded-full bg-success/15 px-2.5 py-1 text-[11px] font-semibold text-emerald-300">
+                84% compliant
+              </span>
+            </div>
+            <div className="mt-4 space-y-2.5">
+              {[
+                ["Apex Electrical", "General Liability", "Approved", "text-emerald-300 bg-success/15"],
+                ["Northline Concrete", "W-9", "In review", "text-amber-300 bg-amber-400/15"],
+                ["Summit Fire Systems", "License", "Expiring soon", "text-orange-300 bg-brand/20"],
+              ].map(([name, doc, status, cls]) => (
+                <div
+                  key={name}
+                  className="flex items-center justify-between gap-3 rounded-xl bg-white/[0.05] px-3.5 py-3"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-[13px] font-semibold text-white">{name}</p>
+                    <p className="text-[11.5px] text-white/45">{doc}</p>
+                  </div>
+                  <span
+                    className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${cls}`}
+                  >
+                    {status}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-        <p className="text-[13px] text-white/40">Pilot release</p>
+
+        <div className="relative flex items-center gap-6 text-[13px] text-white/45">
+          <span>No-account uploads</span>
+          <span className="h-1 w-1 rounded-full bg-white/25" aria-hidden />
+          <span>Expiration tracking</span>
+          <span className="h-1 w-1 rounded-full bg-white/25" aria-hidden />
+          <span>Pilot release</span>
+        </div>
       </div>
 
-      <div className="flex items-center justify-center bg-background px-5 py-14">
-        <div className="w-full max-w-[400px]">
+      <div className="flex items-center justify-center bg-[#f4f5f7] px-5 py-14">
+        <div className="w-full max-w-[420px] rounded-3xl border border-black/[0.05] bg-white p-8 shadow-[0_24px_60px_-32px_rgba(17,24,39,0.25)] sm:p-9">
           <Link to="/" className="mb-8 flex items-center gap-2.5 text-ink lg:hidden">
             <LogoMark className="h-6 w-6" />
             <span className="font-display text-[18px] font-bold">CertKeep</span>
           </Link>
 
-          <h2 className="text-[26px] leading-tight">
+          <h2 className="font-display text-[26px] leading-tight font-bold tracking-[-0.01em]">
             {mode === "signup" ? "Create your account" : "Welcome back"}
           </h2>
           <p className="mt-2 text-[15px] text-[#6b7280]">
@@ -122,7 +171,12 @@ function AuthPage() {
               : "Sign in to your compliance board."}
           </p>
 
-          <button type="button" onClick={google} className={`${btn.ghost} mt-7 w-full`}>
+          <button
+            type="button"
+            onClick={google}
+            className="mt-7 flex w-full items-center justify-center gap-2.5 rounded-xl border border-[#e5e7eb] bg-white px-4 py-3 text-[15px] font-semibold text-ink transition hover:border-[#d1d5db] hover:bg-[#fafafa] focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:outline-none"
+          >
+            <GoogleLogo />
             Continue with Google
           </button>
 
