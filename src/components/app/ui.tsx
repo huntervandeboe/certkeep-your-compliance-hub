@@ -6,7 +6,7 @@ export function Panel({ className, children }: { className?: string; children: R
   return (
     <div
       className={cn(
-        "rounded-2xl border border-border/70 bg-surface shadow-[0_1px_3px_rgba(17,24,39,0.05)]",
+        "rounded-[18px] border border-black/[0.065] bg-surface shadow-[0_1px_2px_rgba(17,24,39,0.03),0_12px_32px_-28px_rgba(17,24,39,0.22)]",
         className,
       )}
     >
@@ -25,10 +25,10 @@ export function PanelHead({
   action?: ReactNode;
 }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-6 py-5">
+    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-black/[0.06] px-5 py-4.5">
       <div className="min-w-0">
-        <h2 className="text-[17px] leading-tight font-bold text-ink">{title}</h2>
-        {subtitle ? <p className="mt-1 text-[14px] text-[#6b7280]">{subtitle}</p> : null}
+        <h2 className="text-[15px] leading-tight font-bold text-ink">{title}</h2>
+        {subtitle ? <p className="mt-1 text-[12px] text-[#7b8190]">{subtitle}</p> : null}
       </div>
       {action}
     </div>
@@ -95,9 +95,9 @@ export const inputClass =
 
 export const btn = {
   primary:
-    "inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-[14px] font-semibold text-white transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60",
+     "inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-[13px] font-bold text-white shadow-[0_8px_20px_-10px_rgba(240,90,40,.7)] transition-all hover:-translate-y-px hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-60",
   ghost:
-    "inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 py-2.5 text-[14px] font-semibold text-ink transition-colors hover:border-ink/25 hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-60",
+     "inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 py-2.5 text-[13px] font-bold text-ink transition-colors hover:border-ink/25 hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-60",
   subtle:
     "inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2 text-[14px] font-semibold text-[#4b5563] transition-colors hover:bg-surface-muted hover:text-ink",
 };

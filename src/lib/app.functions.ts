@@ -18,6 +18,52 @@ export const DOC_TYPES = [
 
 export type DocStatus = "pending" | "submitted" | "approved" | "rejected";
 
+async function ensureWorkspace(context: {
+  userId: string;
+  claims: unknown;
+}) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: existing } = await supabaseAdmin
+    .from("workspace_members")
+    .select("workspace_id, role, workspaces(id, name)")
+    .eq("user_id", context.userId)
+    .eq("status", "active")
+    .limit(1)
+    .maybeSingle();
+
+  if (existing) return existing;
+
+  const claims = context.claims as {
+    email?: string;
+    user_metadata?: { full_name?: string; company_name?: string };
+  };
+  const workspaceName = claims.user_metadata?.company_name || "My workspace";
+  const { data: workspace, error } = await supabaseAdmin
+    .from("workspaces")
+    .insert({ name: workspaceName, owner_user_id: context.userId })
+    .select("id, name")
+    .single();
+  if (error || !workspace) throw new Error("Could not prepare your workspace.");
+
+  await Promise.all([
+    supabaseAdmin.from("workspace_members").insert({
+      workspace_id: workspace.id,
+      user_id: context.userId,
+      email: claims.email ?? null,
+      display_name: claims.user_metadata?.full_name ?? null,
+      role: "owner",
+      status: "active",
+    }),
+    supabaseAdmin.from("user_roles").insert({
+      workspace_id: workspace.id,
+      user_id: context.userId,
+      role: "owner",
+    }),
+  ]);
+
+  return { workspace_id: workspace.id, role: "owner" as const, workspaces: workspace };
+}
+
 function randomToken() {
   return `${crypto.randomUUID()}${crypto.randomUUID()}`.replace(/-/g, "");
 }
@@ -66,6 +112,89 @@ export const getWorkspace = createServerFn({ method: "GET" })
       subcontractors: subs ?? [],
       requests: requests ?? [],
     };
+  });
+
+export const getCommandCenter = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const membership = await ensureWorkspace(context);
+    const workspaceId = membership.workspace_id;
+    const [{ data: projects }, { data: activity }, { data: requirements }, legacy] =
+      await Promise.all([
+        context.supabase
+          .from("projects")
+          .select("id, name, code, location, status, start_date, end_date, created_at")
+          .eq("workspace_id", workspaceId)
+          .order("created_at", { ascending: false }),
+        context.supabase
+          .from("activity_events")
+          .select("id, event_type, entity_type, title, detail, created_at")
+          .eq("workspace_id", workspaceId)
+          .order("created_at", { ascending: false })
+          .limit(8),
+        context.supabase
+          .from("compliance_requirements")
+          .select("id, project_id, name, document_type, status")
+          .eq("workspace_id", workspaceId),
+        Promise.all([
+          context.supabase
+            .from("subcontractors")
+            .select("id, company, trade, project, contact_name, created_at")
+            .order("created_at", { ascending: false }),
+          context.supabase
+            .from("document_requests")
+            .select("id, subcontractor_id, doc_type, status, expiration_date, submitted_at, created_at")
+            .order("created_at", { ascending: false }),
+        ]),
+      ]);
+
+    return {
+      workspace: {
+        id: workspaceId,
+        name: membership.workspaces?.name ?? "My workspace",
+        role: membership.role,
+      },
+      projects: projects ?? [],
+      requirements: requirements ?? [],
+      activity: activity ?? [],
+      subcontractors: legacy[0].data ?? [],
+      requests: legacy[1].data ?? [],
+    };
+  });
+
+export const createProject = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z.object({
+      name: z.string().trim().min(2, "Enter a project name").max(160),
+      code: z.string().trim().max(40).optional().default(""),
+      location: z.string().trim().max(180).optional().default(""),
+    }).parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const membership = await ensureWorkspace(context);
+    const { data: project, error } = await context.supabase
+      .from("projects")
+      .insert({
+        workspace_id: membership.workspace_id,
+        created_by: context.userId,
+        name: data.name,
+        code: data.code || null,
+        location: data.location || null,
+      })
+      .select("id")
+      .single();
+    if (error || !project) throw new Error("Could not create that project.");
+    await context.supabase.from("activity_events").insert({
+      workspace_id: membership.workspace_id,
+      actor_user_id: context.userId,
+      event_type: "project.created",
+      entity_type: "project",
+      entity_id: project.id,
+      title: `${data.name} was created`,
+      detail: data.location || null,
+    });
+    return { id: project.id };
   });
 
 export const saveProfile = createServerFn({ method: "POST" })
