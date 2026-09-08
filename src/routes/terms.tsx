@@ -30,10 +30,9 @@ function TermsPage() {
         generally available.
       </p>
       <p>
-        Accounts are month to month and carry no long-term contract or obligation.
-        CertKeep is a document workflow and tracking tool. It is not an insurance, legal, or
-        regulatory adviser, and it does not determine whether coverage or requirements are
-        acceptable.
+        Accounts are month to month and carry no long-term contract or obligation. CertKeep is a
+        document workflow and tracking tool. It is not an insurance, legal, or regulatory adviser,
+        and it does not determine whether coverage or requirements are acceptable.
       </p>
       <p>
         <Link to="/" className="font-semibold text-brand hover:text-brand-hover">

@@ -8,12 +8,12 @@ export const Route = createFileRoute("/privacy")({
       { title: "Privacy | CertKeep" },
       {
         name: "description",
-        content: "CertKeep's privacy policy is being prepared ahead of the pilot release.",
+        content: "CertKeep's privacy policy is being prepared ahead of general release.",
       },
       { property: "og:title", content: "Privacy | CertKeep" },
       {
         property: "og:description",
-        content: "CertKeep's privacy policy is being prepared ahead of the pilot release.",
+        content: "CertKeep's privacy policy is being prepared ahead of general release.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

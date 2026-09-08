@@ -883,4 +883,3 @@ export const completeOnboarding = createServerFn({ method: "POST" })
       links: created.map((row) => ({ id: row.id, docType: row.doc_type, token: row.token })),
     };
   });
-
