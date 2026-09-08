@@ -1,0 +1,1 @@
+CREATE POLICY "pilot_applications_no_direct_client_access" ON public.pilot_applications FOR ALL TO PUBLIC USING (false) WITH CHECK (false);
