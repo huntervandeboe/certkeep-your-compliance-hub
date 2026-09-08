@@ -5,7 +5,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
-import { Container, Eyebrow } from "./primitives";
+import { Container, SectionHead } from "./primitives";
 
 const faqs = [
   {
