@@ -129,7 +129,7 @@ function SubcontractorDetail() {
         sub ? [sub.trade, sub.project].filter(Boolean).join(" · ") || "No trade set" : undefined
       }
       actions={
-        <Link to="/subcontractors" className={btn.ghost}>
+        <Link to="/subcontractors" search={{ bulk: undefined }} className={btn.ghost}>
           Back to list
         </Link>
       }

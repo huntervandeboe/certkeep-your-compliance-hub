@@ -94,7 +94,7 @@ function DashboardPage() {
   const weekActivity = (data?.activity ?? []).filter((e) => Date.now() - new Date(e.created_at).getTime() <= 7 * DAY);
   const approvals = weekActivity.filter((e) => e.event_type === "document.approved").length;
 
-  return <AppShell title="Good afternoon" subtitle="Here’s the document work that needs attention today." actions={<div className="flex flex-wrap gap-2"><Link to="/subcontractors" className={btn.ghost}><Plus className="h-4 w-4" />Add subcontractor</Link><Link to="/subcontractors" search={{ bulk: "request" }} className={btn.primary}><Send className="h-4 w-4" />Send requests</Link></div>}>
+  return <AppShell title="Good afternoon" subtitle="Here’s the document work that needs attention today." actions={<div className="flex flex-wrap gap-2"><Link to="/subcontractors" search={{ bulk: undefined }} className={btn.ghost}><Plus className="h-4 w-4" />Add subcontractor</Link><Link to="/subcontractors" search={{ bulk: "request" }} className={btn.primary}><Send className="h-4 w-4" />Send requests</Link></div>}>
     {isLoading ? <div className="grid min-h-[420px] place-items-center text-[12px] text-muted-foreground">Preparing today’s work…</div> : <div className="space-y-5">
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Metric label="Needs action" value={model.allRows.length} note="Across review, missing, and expiring records" tone="danger" />
