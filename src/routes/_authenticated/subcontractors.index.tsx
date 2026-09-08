@@ -20,7 +20,7 @@ import {
   createSubcontractor,
   getWorkspace,
 } from "@/lib/app.functions";
-import { EmptyState, Field, Panel, btn, inputClass } from "@/components/app/ui";
+import { Field, Panel, btn, inputClass } from "@/components/app/ui";
 
 export const Route = createFileRoute("/_authenticated/subcontractors/")({
   validateSearch: (search: Record<string, unknown>) => ({
