@@ -49,13 +49,13 @@ function Field({
   label: string;
   name: keyof Values;
   value: string;
-  error?: string;
+  error?: string | undefined;
   onChange: (name: keyof Values, value: string) => void;
   type?: string;
   required?: boolean;
-  autoComplete?: string;
-  placeholder?: string;
-  className?: string;
+  autoComplete?: string | undefined;
+  placeholder?: string | undefined;
+  className?: string | undefined;
 }) {
   const id = useId();
   return (
