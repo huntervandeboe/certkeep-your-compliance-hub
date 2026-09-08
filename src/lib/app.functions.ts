@@ -883,3 +883,69 @@ export const completeOnboarding = createServerFn({ method: "POST" })
       links: created.map((row) => ({ id: row.id, docType: row.doc_type, token: row.token })),
     };
   });
+
+/* ------------------------------------------------------------------ */
+/* Pilot signups (platform owner only)                                 */
+/* ------------------------------------------------------------------ */
+
+async function assertPlatformAdmin(context: { supabase: any; userId: string }) {
+  const { data } = await context.supabase
+    .from("platform_admins")
+    .select("user_id")
+    .eq("user_id", context.userId)
+    .maybeSingle();
+  if (!data) throw new Error("You do not have access to the pilot list.");
+}
+
+export const getPlatformAccess = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data } = await context.supabase
+      .from("platform_admins")
+      .select("user_id")
+      .eq("user_id", context.userId)
+      .maybeSingle();
+    return { isPlatformAdmin: Boolean(data) };
+  });
+
+export const listPilotApplications = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertPlatformAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("pilot_applications")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(500);
+    if (error) throw new Error("Could not load the pilot list.");
+    return data ?? [];
+  });
+
+export const updatePilotApplication = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        status: z.enum(["new", "contacted", "onboarded", "declined"]).optional(),
+        notes: z.string().trim().max(2000).optional(),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    await assertPlatformAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const patch: Record<string, unknown> = {};
+    if (data.status) {
+      patch['status'] = data.status;
+      if (data.status === "contacted") patch['contacted_at'] = new Date().toISOString();
+    }
+    if (data.notes !== undefined) patch['notes'] = data.notes;
+    const { error } = await supabaseAdmin
+      .from("pilot_applications")
+      .update(patch)
+      .eq("id", data.id);
+    if (error) throw new Error("Could not save that change.");
+    return { ok: true as const };
+  });
