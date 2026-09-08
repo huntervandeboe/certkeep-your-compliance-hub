@@ -67,8 +67,14 @@ function SubcontractorDetail() {
   };
 
   const createReq = useMutation({
-    mutationFn: (values: { subcontractorId: string; docType: string; notes: string }) =>
-      requestDoc({ data: values }),
+    mutationFn: (values: {
+      subcontractorId: string;
+      docType: string;
+      notes: string;
+      projectId: null;
+      requirementId: null;
+      dueDate: null;
+    }) => requestDoc({ data: values }),
     onSuccess: () => {
       setError("");
       refresh();
@@ -115,6 +121,9 @@ function SubcontractorDetail() {
       subcontractorId: id,
       docType: String(f.get("docType") ?? ""),
       notes: String(f.get("notes") ?? "").trim(),
+      projectId: null,
+      requirementId: null,
+      dueDate: null,
     });
     e.currentTarget.reset();
   }
@@ -129,7 +138,7 @@ function SubcontractorDetail() {
         sub ? [sub.trade, sub.project].filter(Boolean).join(" · ") || "No trade set" : undefined
       }
       actions={
-        <Link to="/subcontractors" className={btn.ghost}>
+        <Link to="/subcontractors" search={{ bulk: undefined }} className={btn.ghost}>
           Back to list
         </Link>
       }

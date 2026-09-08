@@ -120,15 +120,21 @@ export type Database = {
       }
       document_requests: {
         Row: {
+          assigned_to_user_id: string | null
           created_at: string
           doc_type: string
+          due_date: string | null
           expiration_date: string | null
           file_name: string | null
           file_path: string | null
           id: string
+          last_requested_at: string | null
+          next_reminder_at: string | null
           notes: string | null
           owner_id: string
+          project_id: string | null
           rejection_reason: string | null
+          requirement_id: string | null
           reviewed_at: string | null
           status: Database["public"]["Enums"]["doc_status"]
           subcontractor_id: string
@@ -136,17 +142,24 @@ export type Database = {
           token: string
           token_expires_at: string
           updated_at: string
+          workspace_id: string | null
         }
         Insert: {
+          assigned_to_user_id?: string | null
           created_at?: string
           doc_type: string
+          due_date?: string | null
           expiration_date?: string | null
           file_name?: string | null
           file_path?: string | null
           id?: string
+          last_requested_at?: string | null
+          next_reminder_at?: string | null
           notes?: string | null
           owner_id: string
+          project_id?: string | null
           rejection_reason?: string | null
+          requirement_id?: string | null
           reviewed_at?: string | null
           status?: Database["public"]["Enums"]["doc_status"]
           subcontractor_id: string
@@ -154,17 +167,24 @@ export type Database = {
           token: string
           token_expires_at?: string
           updated_at?: string
+          workspace_id?: string | null
         }
         Update: {
+          assigned_to_user_id?: string | null
           created_at?: string
           doc_type?: string
+          due_date?: string | null
           expiration_date?: string | null
           file_name?: string | null
           file_path?: string | null
           id?: string
+          last_requested_at?: string | null
+          next_reminder_at?: string | null
           notes?: string | null
           owner_id?: string
+          project_id?: string | null
           rejection_reason?: string | null
+          requirement_id?: string | null
           reviewed_at?: string | null
           status?: Database["public"]["Enums"]["doc_status"]
           subcontractor_id?: string
@@ -172,13 +192,35 @@ export type Database = {
           token?: string
           token_expires_at?: string
           updated_at?: string
+          workspace_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "document_requests_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_requests_requirement_id_fkey"
+            columns: ["requirement_id"]
+            isOneToOne: false
+            referencedRelation: "compliance_requirements"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "document_requests_subcontractor_id_fkey"
             columns: ["subcontractor_id"]
             isOneToOne: false
             referencedRelation: "subcontractors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_requests_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
             referencedColumns: ["id"]
           },
         ]
@@ -294,6 +336,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          planned_start_date: string | null
           project_id: string
           subcontractor_id: string
           workspace_id: string
@@ -301,6 +344,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          planned_start_date?: string | null
           project_id: string
           subcontractor_id: string
           workspace_id: string
@@ -308,6 +352,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          planned_start_date?: string | null
           project_id?: string
           subcontractor_id?: string
           workspace_id?: string
@@ -449,6 +494,7 @@ export type Database = {
           project: string | null
           trade: string | null
           updated_at: string
+          workspace_id: string | null
         }
         Insert: {
           company: string
@@ -461,6 +507,7 @@ export type Database = {
           project?: string | null
           trade?: string | null
           updated_at?: string
+          workspace_id?: string | null
         }
         Update: {
           company?: string
@@ -473,8 +520,17 @@ export type Database = {
           project?: string | null
           trade?: string | null
           updated_at?: string
+          workspace_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "subcontractors_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
