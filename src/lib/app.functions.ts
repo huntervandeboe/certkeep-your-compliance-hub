@@ -139,7 +139,7 @@ export const getCommandCenter = createServerFn({ method: "GET" })
           .limit(8),
         context.supabase
           .from("compliance_requirements")
-          .select("id, project_id, name, document_type, status")
+          .select("id, project_id, name, document_type, trade, expiration_warning_days, status")
           .eq("workspace_id", workspaceId),
         context.supabase.from("project_subcontractors").select("id, project_id, subcontractor_id, planned_start_date").eq("workspace_id", workspaceId),
         context.supabase.from("reminder_events").select("id, document_request_id, recipient_email, status, scheduled_for, sent_at, created_at").eq("workspace_id", workspaceId).order("created_at", { ascending: false }),

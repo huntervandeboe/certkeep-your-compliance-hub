@@ -9,7 +9,7 @@ import { EmptyState, Panel, StatusBadge, btn, inputClass } from "@/components/ap
 import { getCommandCenter, getDocumentUrl, reviewDocumentRequest } from "@/lib/app.functions";
 
 export const Route = createFileRoute("/_authenticated/review")({
-  validateSearch: (search: Record<string, unknown>) => ({ document: typeof search.document === "string" ? search.document : undefined }),
+  validateSearch: (search: Record<string, unknown>) => ({ document: typeof search["document"] === "string" ? search["document"] : undefined }),
   component: ReviewPage,
   head: () => ({ meta: [{ title: "Fast document review | CertKeep" }, { name: "description", content: "Review subcontractor documents beside project requirements." }, { property: "og:title", content: "Fast document review | CertKeep" }, { property: "og:description", content: "Review and resolve uploaded compliance documents quickly." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }] }),
 });
