@@ -1,6 +1,6 @@
 import { Check } from "lucide-react";
 
-import { Container, Eyebrow, Reveal, buttonStyles } from "./primitives";
+import { Container, Reveal, SectionHead, buttonStyles } from "./primitives";
 
 const included = [
   "Account-free upload links",
@@ -17,16 +17,14 @@ export function Pricing() {
     <section id="pricing" className="bg-background py-[72px] md:py-[112px]">
       <Container>
         <div className="grid gap-12 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1fr)] lg:gap-20">
-          <div>
-            <Eyebrow>Straightforward pricing</Eyebrow>
-            <h2 className="mt-5 max-w-[420px] text-[32px] leading-[1.12] font-extrabold sm:text-[42px]">
-              Start small. Stay month to month.
-            </h2>
-            <p className="mt-6 max-w-[420px] text-[17px] leading-relaxed text-[#374151]">
-              One plan while we run the pilot. If your subcontractor list grows past the Starter
-              limit, we will work out the next tier with you directly.
-            </p>
-          </div>
+          <SectionHead
+            eyebrow="Straightforward pricing"
+            title="Start small. Stay month to month."
+            className="lg:sticky lg:top-28 lg:self-start"
+          >
+            One plan while we run the pilot. If your subcontractor list grows past the Starter
+            limit, we will work out the next tier with you directly.
+          </SectionHead>
 
           <Reveal>
             <div className="rounded-2xl border border-border bg-surface p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_60px_-40px_rgba(17,24,39,0.55)] sm:p-9">

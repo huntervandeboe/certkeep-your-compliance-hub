@@ -5,7 +5,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
-import { Container, Eyebrow } from "./primitives";
+import { Container, SectionHead } from "./primitives";
 
 const faqs = [
   {
@@ -39,12 +39,11 @@ export function FAQ() {
     <section id="faq" className="bg-surface py-[72px] md:py-[112px]">
       <Container>
         <div className="grid gap-12 lg:grid-cols-[minmax(0,0.7fr)_minmax(0,1fr)] lg:gap-20">
-          <div>
-            <Eyebrow>Questions</Eyebrow>
-            <h2 className="mt-5 max-w-[340px] text-[32px] leading-[1.12] font-extrabold sm:text-[42px]">
-              Answers before you apply.
-            </h2>
-          </div>
+          <SectionHead
+            eyebrow="Questions"
+            title="Answers before you apply."
+            className="lg:sticky lg:top-28 lg:self-start"
+          />
 
           <Accordion type="single" collapsible className="w-full">
             {faqs.map((faq, i) => (

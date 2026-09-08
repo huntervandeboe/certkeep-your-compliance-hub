@@ -21,6 +21,8 @@
 @theme inline {
   --font-sans:
     "Manrope", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display:
+    "Sora", "Manrope", ui-sans-serif, system-ui, -apple-system, sans-serif;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -176,8 +178,15 @@
   h3,
   h4 {
     color: var(--ink);
-    letter-spacing: -0.02em;
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.028em;
   }
+
+  h1 {
+    letter-spacing: -0.038em;
+  }
+
 
   html {
     scroll-behavior: smooth;

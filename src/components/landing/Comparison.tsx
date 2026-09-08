@@ -1,69 +1,53 @@
 import { Check, Minus } from "lucide-react";
 
-import { Container, Eyebrow, Reveal } from "./primitives";
+import { Container, Reveal, SectionHead } from "./primitives";
 
-const oldWay = [
-  "Spreadsheet rows",
-  "Repeated follow-up emails",
-  "Documents buried in folders",
-  "Subcontractor passwords",
-  "Surprise expirations",
-];
-
-const newWay = [
-  "Live status dashboard",
-  "One-click upload requests",
-  "Central document history",
-  "No subcontractor account",
-  "Proactive expiration alerts",
+const rows: { old: string; now: string }[] = [
+  { old: "Spreadsheet rows", now: "Live status dashboard" },
+  { old: "Repeated follow-up emails", now: "One-click upload requests" },
+  { old: "Documents buried in folders", now: "Central document history" },
+  { old: "Subcontractor passwords", now: "No subcontractor account" },
+  { old: "Surprise expirations", now: "Proactive expiration alerts" },
 ];
 
 export function Comparison() {
   return (
-    <section className="bg-surface-muted py-[72px] md:py-[112px]">
+    <section className="bg-surface-muted py-[72px] md:py-[120px]">
       <Container>
-        <div className="max-w-[560px]">
-          <Eyebrow>The difference</Eyebrow>
-          <h2 className="mt-5 text-[32px] leading-[1.12] font-extrabold sm:text-[42px]">
-            Same job. Far less chasing.
-          </h2>
-        </div>
+        <SectionHead eyebrow="The difference" title="Same job. Far less chasing." />
 
-        <div className="mt-12 grid gap-5 md:grid-cols-2">
-          <Reveal>
-            <div className="h-full rounded-2xl border border-border bg-surface/60 p-7 sm:p-8">
-              <h3 className="text-[13px] font-bold tracking-[0.14em] text-[#6b7280] uppercase">
+        <Reveal className="mt-12 md:mt-14">
+          <div className="overflow-hidden rounded-[14px] border border-border bg-surface">
+            <div className="grid grid-cols-1 border-b border-border sm:grid-cols-2">
+              <p className="px-6 py-4 text-[12px] font-bold tracking-[0.18em] text-[#9ca3af] uppercase sm:border-r sm:border-border">
                 The current workflow
-              </h3>
-              <ul className="mt-6 space-y-3.5">
-                {oldWay.map((item) => (
-                  <li key={item} className="flex items-center gap-3">
-                    <Minus className="h-4 w-4 shrink-0 text-[#9ca3af]" aria-hidden="true" />
-                    <span className="text-[16px] text-[#6b7280]">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </Reveal>
-
-          <Reveal delay={100}>
-            <div className="h-full rounded-2xl border border-ink/10 bg-surface p-7 shadow-[0_20px_50px_-40px_rgba(17,24,39,0.6)] sm:p-8">
-              <h3 className="text-[13px] font-bold tracking-[0.14em] text-brand uppercase">
+              </p>
+              <p className="hidden px-6 py-4 text-[12px] font-bold tracking-[0.18em] text-brand uppercase sm:block">
                 With CertKeep
-              </h3>
-              <ul className="mt-6 space-y-3.5">
-                {newWay.map((item) => (
-                  <li key={item} className="flex items-center gap-3">
-                    <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-success-soft">
-                      <Check className="h-3 w-3 text-success" aria-hidden="true" />
-                    </span>
-                    <span className="text-[16px] font-medium text-ink">{item}</span>
-                  </li>
-                ))}
-              </ul>
+              </p>
             </div>
-          </Reveal>
-        </div>
+
+            {rows.map((row) => (
+              <div
+                key={row.old}
+                className="grid grid-cols-1 border-b border-border last:border-b-0 sm:grid-cols-2"
+              >
+                <div className="flex items-center gap-3 bg-surface-muted/50 px-6 py-5 sm:border-r sm:border-border">
+                  <Minus className="h-4 w-4 shrink-0 text-[#9ca3af]" aria-hidden="true" />
+                  <span className="text-[16px] text-[#6b7280] line-through decoration-[#d1d5db]">
+                    {row.old}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3 px-6 py-5">
+                  <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-success-soft">
+                    <Check className="h-3 w-3 text-success" aria-hidden="true" />
+                  </span>
+                  <span className="text-[16px] font-semibold text-ink">{row.now}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Reveal>
       </Container>
     </section>
   );
