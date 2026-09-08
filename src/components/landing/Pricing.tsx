@@ -1,6 +1,6 @@
 import { Check } from "lucide-react";
 
-import { Container, Eyebrow, Reveal, buttonStyles } from "./primitives";
+import { Container, Reveal, SectionHead, buttonStyles } from "./primitives";
 
 const included = [
   "Account-free upload links",
