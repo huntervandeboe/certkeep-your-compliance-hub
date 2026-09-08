@@ -63,7 +63,7 @@ export function Nav() {
 
           <div className="hidden items-center gap-5 lg:flex">
             <a
-              href="#pilot"
+              href="/auth"
               className="text-[15px] font-semibold text-ink transition-colors hover:text-brand"
             >
               Log in
@@ -114,7 +114,7 @@ export function Nav() {
                 Join the Pilot
               </a>
               <a
-                href="#pilot"
+                href="/auth"
                 onClick={() => setOpen(false)}
                 className={buttonStyles.secondary + " w-full"}
               >

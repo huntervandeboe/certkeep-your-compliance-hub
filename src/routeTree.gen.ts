@@ -10,12 +10,28 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedReviewRouteImport } from './routes/_authenticated/review'
+import { Route as UploadTokenRouteImport } from './routes/upload.$token'
+import { Route as AuthenticatedSubcontractorsIndexRouteImport } from './routes/_authenticated/subcontractors.index'
+import { Route as AuthenticatedSubcontractorsIdRouteImport } from './routes/_authenticated/subcontractors.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
@@ -28,35 +44,113 @@ const TermsRoute = TermsRouteImport.update({
   path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedReviewRoute = AuthenticatedReviewRouteImport.update({
+  id: '/review',
+  path: '/review',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const UploadTokenRoute = UploadTokenRouteImport.update({
+  id: '/upload/$token',
+  path: '/upload/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedSubcontractorsIndexRoute =
+  AuthenticatedSubcontractorsIndexRouteImport.update({
+    id: '/subcontractors/',
+    path: '/subcontractors/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSubcontractorsIdRoute =
+  AuthenticatedSubcontractorsIdRouteImport.update({
+    id: '/subcontractors/$id',
+    path: '/subcontractors/$id',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/review': typeof AuthenticatedReviewRoute
+  '/upload/$token': typeof UploadTokenRoute
+  '/subcontractors/$id': typeof AuthenticatedSubcontractorsIdRoute
+  '/subcontractors/': typeof AuthenticatedSubcontractorsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/review': typeof AuthenticatedReviewRoute
+  '/upload/$token': typeof UploadTokenRoute
+  '/subcontractors/$id': typeof AuthenticatedSubcontractorsIdRoute
+  '/subcontractors': typeof AuthenticatedSubcontractorsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
   '/privacy': typeof PrivacyRoute
   '/terms': typeof TermsRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/review': typeof AuthenticatedReviewRoute
+  '/upload/$token': typeof UploadTokenRoute
+  '/_authenticated/subcontractors/$id': typeof AuthenticatedSubcontractorsIdRoute
+  '/_authenticated/subcontractors/': typeof AuthenticatedSubcontractorsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/privacy' | '/terms'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/privacy'
+    | '/terms'
+    | '/dashboard'
+    | '/review'
+    | '/upload/$token'
+    | '/subcontractors/$id'
+    | '/subcontractors/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/privacy' | '/terms'
-  id: '__root__' | '/' | '/privacy' | '/terms'
+  to:
+    | '/'
+    | '/auth'
+    | '/privacy'
+    | '/terms'
+    | '/dashboard'
+    | '/review'
+    | '/upload/$token'
+    | '/subcontractors/$id'
+    | '/subcontractors'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/privacy'
+    | '/terms'
+    | '/_authenticated/dashboard'
+    | '/_authenticated/review'
+    | '/upload/$token'
+    | '/_authenticated/subcontractors/$id'
+    | '/_authenticated/subcontractors/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
   PrivacyRoute: typeof PrivacyRoute
   TermsRoute: typeof TermsRoute
+  UploadTokenRoute: typeof UploadTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -66,6 +160,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -82,13 +190,68 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/review': {
+      id: '/_authenticated/review'
+      path: '/review'
+      fullPath: '/review'
+      preLoaderRoute: typeof AuthenticatedReviewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/upload/$token': {
+      id: '/upload/$token'
+      path: '/upload/$token'
+      fullPath: '/upload/$token'
+      preLoaderRoute: typeof UploadTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/subcontractors/': {
+      id: '/_authenticated/subcontractors/'
+      path: '/subcontractors'
+      fullPath: '/subcontractors/'
+      preLoaderRoute: typeof AuthenticatedSubcontractorsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/subcontractors/$id': {
+      id: '/_authenticated/subcontractors/$id'
+      path: '/subcontractors/$id'
+      fullPath: '/subcontractors/$id'
+      preLoaderRoute: typeof AuthenticatedSubcontractorsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedReviewRoute: typeof AuthenticatedReviewRoute
+  AuthenticatedSubcontractorsIdRoute: typeof AuthenticatedSubcontractorsIdRoute
+  AuthenticatedSubcontractorsIndexRoute: typeof AuthenticatedSubcontractorsIndexRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedReviewRoute: AuthenticatedReviewRoute,
+  AuthenticatedSubcontractorsIdRoute: AuthenticatedSubcontractorsIdRoute,
+  AuthenticatedSubcontractorsIndexRoute: AuthenticatedSubcontractorsIndexRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
   PrivacyRoute: PrivacyRoute,
   TermsRoute: TermsRoute,
+  UploadTokenRoute: UploadTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
