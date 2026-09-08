@@ -17,10 +17,11 @@ export function MagicLink() {
       <Container>
         <div className="grid items-center gap-14 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.85fr)] lg:gap-20">
           <div>
-            <p className="text-[13px] font-bold tracking-[0.14em] text-brand uppercase">
+            <p className="flex items-center gap-3 text-[12px] font-bold tracking-[0.18em] text-brand uppercase">
+              <span aria-hidden="true" className="h-px w-8 bg-brand/50" />
               The magic link
             </p>
-            <h2 className="mt-5 max-w-[560px] text-[32px] leading-[1.1] font-extrabold text-white sm:text-[44px]">
+            <h2 className="mt-6 max-w-[15ch] text-[clamp(30px,4.4vw,48px)] leading-[1.05] text-white">
               The easiest upload is the one that does not require a login.
             </h2>
             <p className="mt-6 max-w-[520px] text-[17px] leading-relaxed text-white/70">
