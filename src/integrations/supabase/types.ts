@@ -14,7 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      pilot_applications: {
+        Row: {
+          biggest_problem: string | null
+          company: string
+          created_at: string
+          full_name: string
+          id: string
+          job_title: string | null
+          phone: string | null
+          state: string | null
+          subcontractor_count: string | null
+          tracking_method: string | null
+          work_email: string
+        }
+        Insert: {
+          biggest_problem?: string | null
+          company: string
+          created_at?: string
+          full_name: string
+          id?: string
+          job_title?: string | null
+          phone?: string | null
+          state?: string | null
+          subcontractor_count?: string | null
+          tracking_method?: string | null
+          work_email: string
+        }
+        Update: {
+          biggest_problem?: string | null
+          company?: string
+          created_at?: string
+          full_name?: string
+          id?: string
+          job_title?: string | null
+          phone?: string | null
+          state?: string | null
+          subcontractor_count?: string | null
+          tracking_method?: string | null
+          work_email?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
