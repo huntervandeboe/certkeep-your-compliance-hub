@@ -105,7 +105,7 @@ export const getWorkspace = createServerFn({ method: "GET" })
         supabase
           .from("document_requests")
           .select(
-            "id, subcontractor_id, doc_type, status, expiration_date, submitted_at, created_at, reviewed_at, due_date, assigned_to_user_id, project_id, requirement_id, last_requested_at, next_reminder_at, rejection_reason, file_path",
+            "id, subcontractor_id, doc_type, status, expiration_date, submitted_at, created_at, reviewed_at, due_date, assigned_to_user_id, project_id, requirement_id, last_requested_at, next_reminder_at, rejection_reason, file_path, token",
           )
           .eq("workspace_id", membership.workspace_id)
           .order("created_at", { ascending: false }),
@@ -187,7 +187,7 @@ export const getCommandCenter = createServerFn({ method: "GET" })
         context.supabase
           .from("document_requests")
           .select(
-            "id, subcontractor_id, doc_type, status, expiration_date, submitted_at, reviewed_at, created_at, due_date, assigned_to_user_id, project_id, requirement_id, last_requested_at, next_reminder_at, rejection_reason, file_path",
+            "id, subcontractor_id, doc_type, status, expiration_date, submitted_at, reviewed_at, created_at, due_date, assigned_to_user_id, project_id, requirement_id, last_requested_at, next_reminder_at, rejection_reason, file_path, token",
           )
           .eq("workspace_id", workspaceId)
           .order("created_at", { ascending: false }),
@@ -751,4 +751,135 @@ export const submitUpload = createServerFn({ method: "POST" })
 
     if (error) throw new Error("We could not save your document. Please try again.");
     return { ok: true as const };
+  });
+
+/* ------------------------------------------------------------------ */
+/* Pilot onboarding: first project, first subcontractor, first links   */
+/* ------------------------------------------------------------------ */
+
+const optionalDate = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/)
+  .optional()
+  .nullable()
+  .or(z.literal(""));
+
+export const completeOnboarding = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: unknown) =>
+    z
+      .object({
+        projectName: z.string().trim().min(1, "Name the project").max(120),
+        projectLocation: z.string().trim().max(160).optional().default(""),
+        projectStart: optionalDate,
+        company: z.string().trim().min(1, "Enter the company name").max(160),
+        trade: z.string().trim().max(80).optional().default(""),
+        contactName: z.string().trim().max(120).optional().default(""),
+        contactEmail: z.string().trim().email("Enter a valid email").max(255).or(z.literal("")),
+        plannedStart: optionalDate,
+        docTypes: z.array(z.string().trim().min(1).max(120)).min(1, "Pick at least one document"),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const membership = await ensureWorkspace(context);
+    const workspaceId = membership.workspace_id;
+
+    const { data: project, error: projectError } = await context.supabase
+      .from("projects")
+      .insert({
+        workspace_id: workspaceId,
+        name: data.projectName,
+        location: data.projectLocation || null,
+        start_date: data.projectStart || null,
+        status: "active",
+        created_by: context.userId,
+      })
+      .select("id, name")
+      .single();
+    if (projectError || !project) throw new Error("Could not create that project.");
+
+    const { data: sub, error: subError } = await context.supabase
+      .from("subcontractors")
+      .insert({
+        owner_id: context.userId,
+        workspace_id: workspaceId,
+        company: data.company,
+        trade: data.trade || null,
+        project: project.name,
+        contact_name: data.contactName || null,
+        contact_email: data.contactEmail || null,
+      })
+      .select("id, company")
+      .single();
+    if (subError || !sub) throw new Error("Could not add that subcontractor.");
+
+    await context.supabase.from("project_subcontractors").insert({
+      workspace_id: workspaceId,
+      project_id: project.id,
+      subcontractor_id: sub.id,
+      planned_start_date: data.plannedStart || null,
+    });
+
+    await context.supabase.from("compliance_requirements").insert(
+      data.docTypes.map((docType) => ({
+        workspace_id: workspaceId,
+        project_id: project.id,
+        name: docType,
+        document_type: docType,
+        status: "required" as const,
+      })),
+    );
+
+    const now = new Date();
+    const nextReminder = new Date(now.getTime() + 3 * 86400000);
+    const due = new Date(now.getTime() + 5 * 86400000).toISOString().slice(0, 10);
+    const { data: created, error: requestError } = await context.supabase
+      .from("document_requests")
+      .insert(
+        data.docTypes.map((docType) => ({
+          owner_id: context.userId,
+          workspace_id: workspaceId,
+          subcontractor_id: sub.id,
+          project_id: project.id,
+          doc_type: docType,
+          token: randomToken(),
+          due_date: due,
+          assigned_to_user_id: context.userId,
+          last_requested_at: now.toISOString(),
+          next_reminder_at: nextReminder.toISOString(),
+        })),
+      )
+      .select("id, doc_type, token");
+    if (requestError || !created) throw new Error("Could not create the first document requests.");
+
+    if (data.contactEmail) {
+      await context.supabase.from("reminder_events").insert(
+        created.map((row) => ({
+          workspace_id: workspaceId,
+          document_request_id: row.id,
+          recipient_email: data.contactEmail,
+          status: "scheduled",
+          scheduled_for: nextReminder.toISOString(),
+          created_by: context.userId,
+        })),
+      );
+    }
+
+    await context.supabase.from("activity_events").insert({
+      workspace_id: workspaceId,
+      actor_user_id: context.userId,
+      event_type: "workspace.onboarded",
+      entity_type: "project",
+      entity_id: project.id,
+      title: `Pilot setup complete for ${project.name}`,
+      detail: `${created.length} secure upload links created for ${sub.company}`,
+    });
+
+    return {
+      projectId: project.id,
+      subcontractorId: sub.id,
+      company: sub.company,
+      links: created.map((row) => ({ id: row.id, docType: row.doc_type, token: row.token })),
+    };
   });
