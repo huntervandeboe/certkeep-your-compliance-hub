@@ -12,6 +12,7 @@ import {
   Plus,
   Send,
   UserRound,
+  Copy,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 
@@ -290,8 +291,8 @@ function DashboardPage() {
                     CertKeep will prioritize every submission, follow-up, and expiration here.
                   </p>
                   <div className="mt-5 flex flex-wrap gap-2">
-                    <Link to="/projects" className={btn.primary}>
-                      <Plus className="h-4 w-4" /> Create first project
+                    <Link to="/onboarding" className={btn.primary}>
+                      <Plus className="h-4 w-4" /> Start pilot setup
                     </Link>
                     <Link to="/subcontractors" search={{ bulk: undefined }} className={btn.ghost}>
                       Add subcontractor
@@ -437,15 +438,27 @@ function DashboardPage() {
                             Review <ArrowRight className="h-4 w-4" />
                           </Link>
                         ) : (
-                          <button
-                            type="button"
-                            className={btn.ghost}
-                            disabled={reminder.isPending}
-                            onClick={() => reminder.mutate(row.id)}
-                          >
-                            <Send className="h-4 w-4" />
-                            Follow up
-                          </button>
+                          <div className="flex flex-wrap gap-2">
+                            {row.token ? (
+                              <button
+                                type="button"
+                                className={btn.ghost}
+                                onClick={() => copyUploadLink(row.token, row.id)}
+                              >
+                                <Copy className="h-4 w-4" />
+                                {copiedId === row.id ? "Copied" : "Copy upload link"}
+                              </button>
+                            ) : null}
+                            <button
+                              type="button"
+                              className={btn.ghost}
+                              disabled={reminder.isPending}
+                              onClick={() => reminder.mutate(row.id)}
+                            >
+                              <Send className="h-4 w-4" />
+                              Follow up
+                            </button>
+                          </div>
                         )}
                       </div>
                     );
