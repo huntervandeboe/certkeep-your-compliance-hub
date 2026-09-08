@@ -77,7 +77,7 @@ export function AppShell({
               <Link
                 key={item.to}
                 to={item.to}
-                search={item.to === "/review" ? { document: undefined } : undefined}
+                search={{}}
                 className={cn(
                   "flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-semibold transition-colors",
                   isActive(item.to)
@@ -177,7 +177,7 @@ export function AppShell({
                 <Link
                   key={item.to}
                   to={item.to}
-                  search={item.to === "/review" ? { document: undefined } : undefined}
+                  search={{}}
                   onClick={() => setOpen(false)}
                   className={cn(
                     "flex items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-semibold",
