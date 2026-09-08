@@ -105,7 +105,7 @@ export const getWorkspace = createServerFn({ method: "GET" })
         supabase
           .from("document_requests")
           .select(
-            "id, subcontractor_id, doc_type, status, expiration_date, submitted_at, created_at, reviewed_at, due_date, assigned_to_user_id, project_id, requirement_id, last_requested_at, next_reminder_at, rejection_reason, file_path",
+            "id, subcontractor_id, doc_type, status, expiration_date, submitted_at, created_at, reviewed_at, due_date, assigned_to_user_id, project_id, requirement_id, last_requested_at, next_reminder_at, rejection_reason, file_path, token",
           )
           .eq("workspace_id", membership.workspace_id)
           .order("created_at", { ascending: false }),
@@ -187,7 +187,7 @@ export const getCommandCenter = createServerFn({ method: "GET" })
         context.supabase
           .from("document_requests")
           .select(
-            "id, subcontractor_id, doc_type, status, expiration_date, submitted_at, reviewed_at, created_at, due_date, assigned_to_user_id, project_id, requirement_id, last_requested_at, next_reminder_at, rejection_reason, file_path",
+            "id, subcontractor_id, doc_type, status, expiration_date, submitted_at, reviewed_at, created_at, due_date, assigned_to_user_id, project_id, requirement_id, last_requested_at, next_reminder_at, rejection_reason, file_path, token",
           )
           .eq("workspace_id", workspaceId)
           .order("created_at", { ascending: false }),
