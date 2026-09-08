@@ -98,13 +98,13 @@ export function AppShell({
               <CircleHelp className="h-[17px] w-[17px]" />
               Help center
             </button>
-            <button
-              type="button"
+            <Link
+              to="/settings"
               className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-semibold text-white/55 hover:bg-white/[0.06] hover:text-white"
             >
               <Settings className="h-[17px] w-[17px]" />
               Settings
-            </button>
+            </Link>
             <button
               type="button"
               onClick={signOut}
@@ -188,6 +188,14 @@ export function AppShell({
                   {item.label}
                 </Link>
               ))}
+              <Link
+                to="/settings"
+                onClick={() => setOpen(false)}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[14px] font-semibold text-[#6b7280]"
+              >
+                <Settings className="h-[18px] w-[18px]" />
+                Settings
+              </Link>
               <button
                 type="button"
                 onClick={signOut}

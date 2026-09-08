@@ -321,10 +321,31 @@ function SubcontractorsPage() {
               </table>
             </div>
           ) : (
-            <EmptyState
-              title="No subcontractors yet"
-              body="Add your first trade partner, assign upcoming work, and send a secure document request."
-            />
+            <div className="grid gap-6 p-6 lg:grid-cols-[minmax(0,1fr)_420px]">
+              <div>
+                <p className="text-[10px] font-bold tracking-[.12em] text-brand uppercase">Build your roster</p>
+                <h2 className="mt-3 text-[19px]">Add the first trade partner on an upcoming job.</h2>
+                <p className="mt-2 max-w-[56ch] text-[12px] leading-5 text-muted-foreground">
+                  Their company, trade, and contact details become the home for requests, uploads,
+                  review decisions, expiration dates, and project assignments.
+                </p>
+                <button type="button" className={`${btn.primary} mt-5`} onClick={() => setShowAdd(true)}>
+                  <Plus className="h-4 w-4" /> Add first subcontractor
+                </button>
+              </div>
+              <div className="grid gap-2">
+                {[
+                  ["1", "Company and trade", "Identify who is performing the work."],
+                  ["2", "Project and start date", "Prioritize requirements before mobilization."],
+                  ["3", "Secure requests", "Collect files without a subcontractor account."],
+                ].map(([step, title, copy]) => (
+                  <div key={step} className="flex gap-3 rounded-xl border border-border bg-surface-muted p-3.5">
+                    <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-ink text-[10px] font-bold text-white">{step}</span>
+                    <div><p className="text-[11px] font-bold text-ink">{title}</p><p className="mt-0.5 text-[9px] text-muted-foreground">{copy}</p></div>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
         </Panel>
       </div>

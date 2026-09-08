@@ -90,6 +90,9 @@ function DashboardPage() {
   const load = useServerFn(getCommandCenter);
   const followUp = useServerFn(sendRequestFollowUp);
   const { data, isLoading } = useQuery({ queryKey: ["command-center"], queryFn: () => load() });
+  const hasStarted = Boolean(
+    data?.projects.length || data?.subcontractors.length || data?.requests.length,
+  );
   const [project, setProject] = useState("all");
   const [issue, setIssue] = useState("all");
   const [mine, setMine] = useState(false);
@@ -272,6 +275,44 @@ function DashboardPage() {
             />
           </div>
 
+          {!hasStarted ? (
+            <Panel className="overflow-hidden">
+              <div className="grid gap-6 p-6 lg:grid-cols-[minmax(0,1fr)_minmax(420px,1.15fr)] lg:p-7">
+                <div>
+                  <p className="text-[10px] font-bold tracking-[.12em] text-brand uppercase">
+                    Set up today’s queue
+                  </p>
+                  <h2 className="mt-3 text-[22px]">Turn your first job into an actionable checklist.</h2>
+                  <p className="mt-2 max-w-[54ch] text-[12px] leading-5 text-muted-foreground">
+                    Add an upcoming project and trade partner, then send the first secure request.
+                    CertKeep will prioritize every submission, follow-up, and expiration here.
+                  </p>
+                  <div className="mt-5 flex flex-wrap gap-2">
+                    <Link to="/projects" className={btn.primary}>
+                      <Plus className="h-4 w-4" /> Create first project
+                    </Link>
+                    <Link to="/subcontractors" search={{ bulk: undefined }} className={btn.ghost}>
+                      Add subcontractor
+                    </Link>
+                  </div>
+                </div>
+                <ol className="grid gap-2 sm:grid-cols-3">
+                  {[
+                    ["01", "Add the job", "Set the start date that drives priority."],
+                    ["02", "Add trade partners", "Record the people and companies on site."],
+                    ["03", "Request documents", "Create secure, account-free upload links."],
+                  ].map(([number, title, copy]) => (
+                    <li key={number} className="rounded-xl border border-border bg-surface-muted p-4">
+                      <span className="text-[10px] font-bold text-brand">{number}</span>
+                      <p className="mt-4 text-[12px] font-bold text-ink">{title}</p>
+                      <p className="mt-1 text-[10px] leading-4 text-muted-foreground">{copy}</p>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </Panel>
+          ) : null}
+
           <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1.55fr)_340px]">
             <Panel className="overflow-hidden">
               <div className="border-b border-border px-5 py-4">
@@ -405,7 +446,7 @@ function DashboardPage() {
                     );
                   })}
                 </div>
-              ) : (
+              ) : hasStarted ? (
                 <div className="grid min-h-[250px] place-items-center px-6 text-center">
                   <div>
                     <CheckCircle2 className="mx-auto h-8 w-8 text-success" />
@@ -414,6 +455,10 @@ function DashboardPage() {
                       No work matches these filters.
                     </p>
                   </div>
+                </div>
+              ) : (
+                <div className="px-5 py-6 text-[11px] text-muted-foreground">
+                  Your prioritized work will appear here after the first document request.
                 </div>
               )}
             </Panel>
@@ -452,9 +497,10 @@ function DashboardPage() {
                     ))}
                   </div>
                 ) : (
-                  <p className="px-5 py-8 text-center text-[11px] text-muted-foreground">
-                    Add planned start dates to project assignments.
-                  </p>
+                  <Link to="/projects" className="flex items-center justify-between px-5 py-5 hover:bg-surface-muted">
+                    <span className="text-[11px] font-semibold text-ink">Plan an upcoming start</span>
+                    <ArrowRight className="h-4 w-4 text-brand" />
+                  </Link>
                 )}
               </Panel>
               <Panel className="overflow-hidden">
@@ -483,9 +529,10 @@ function DashboardPage() {
                       </div>
                     ))}
                   {!(data?.reminders ?? []).some((r) => r.status === "scheduled") ? (
-                    <p className="px-5 py-8 text-center text-[11px] text-muted-foreground">
-                      No reminders scheduled.
-                    </p>
+                    <Link to="/subcontractors" search={{ bulk: "request" }} className="flex items-center justify-between px-5 py-5 hover:bg-surface-muted">
+                      <span className="text-[11px] font-semibold text-ink">Send a request to schedule follow-up</span>
+                      <ArrowRight className="h-4 w-4 text-brand" />
+                    </Link>
                   ) : null}
                 </div>
               </Panel>
@@ -525,6 +572,11 @@ function DashboardPage() {
                   </p>
                 </div>
               ))}
+              {!(data?.activity ?? []).length ? (
+                <div className="px-5 py-5 text-[11px] text-muted-foreground md:col-span-3">
+                  Completed reviews, requests, and project changes will build your audit trail here.
+                </div>
+              ) : null}
             </div>
           </Panel>
         </div>
