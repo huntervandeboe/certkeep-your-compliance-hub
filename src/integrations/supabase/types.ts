@@ -122,6 +122,7 @@ export type Database = {
         Row: {
           assigned_to_user_id: string | null
           created_at: string
+          current_version: number
           doc_type: string
           due_date: string | null
           expiration_date: string | null
@@ -135,7 +136,10 @@ export type Database = {
           project_id: string | null
           rejection_reason: string | null
           requirement_id: string | null
+          resolved_at: string | null
           reviewed_at: string | null
+          revoked_at: string | null
+          scope: string
           status: Database["public"]["Enums"]["doc_status"]
           subcontractor_id: string
           submitted_at: string | null
@@ -147,6 +151,7 @@ export type Database = {
         Insert: {
           assigned_to_user_id?: string | null
           created_at?: string
+          current_version?: number
           doc_type: string
           due_date?: string | null
           expiration_date?: string | null
@@ -160,7 +165,10 @@ export type Database = {
           project_id?: string | null
           rejection_reason?: string | null
           requirement_id?: string | null
+          resolved_at?: string | null
           reviewed_at?: string | null
+          revoked_at?: string | null
+          scope?: string
           status?: Database["public"]["Enums"]["doc_status"]
           subcontractor_id: string
           submitted_at?: string | null
@@ -172,6 +180,7 @@ export type Database = {
         Update: {
           assigned_to_user_id?: string | null
           created_at?: string
+          current_version?: number
           doc_type?: string
           due_date?: string | null
           expiration_date?: string | null
@@ -185,7 +194,10 @@ export type Database = {
           project_id?: string | null
           rejection_reason?: string | null
           requirement_id?: string | null
+          resolved_at?: string | null
           reviewed_at?: string | null
+          revoked_at?: string | null
+          scope?: string
           status?: Database["public"]["Enums"]["doc_status"]
           subcontractor_id?: string
           submitted_at?: string | null
@@ -218,6 +230,144 @@ export type Database = {
           },
           {
             foreignKeyName: "document_requests_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_reviews: {
+        Row: {
+          created_at: string
+          decision: string
+          document_request_id: string
+          document_version_id: string
+          id: string
+          project_id: string | null
+          reason: string | null
+          requirement_id: string | null
+          reviewer_user_id: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          decision: string
+          document_request_id: string
+          document_version_id: string
+          id?: string
+          project_id?: string | null
+          reason?: string | null
+          requirement_id?: string | null
+          reviewer_user_id: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          decision?: string
+          document_request_id?: string
+          document_version_id?: string
+          id?: string
+          project_id?: string | null
+          reason?: string | null
+          requirement_id?: string | null
+          reviewer_user_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_reviews_document_request_id_fkey"
+            columns: ["document_request_id"]
+            isOneToOne: false
+            referencedRelation: "document_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_reviews_document_version_id_fkey"
+            columns: ["document_version_id"]
+            isOneToOne: false
+            referencedRelation: "document_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_reviews_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_reviews_requirement_id_fkey"
+            columns: ["requirement_id"]
+            isOneToOne: false
+            referencedRelation: "compliance_requirements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_reviews_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_versions: {
+        Row: {
+          content_type: string | null
+          created_at: string
+          document_request_id: string
+          expiration_date: string | null
+          file_name: string
+          file_path: string
+          file_size: number | null
+          id: string
+          status: Database["public"]["Enums"]["doc_status"]
+          uploaded_at: string
+          uploaded_via: string
+          version: number
+          workspace_id: string
+        }
+        Insert: {
+          content_type?: string | null
+          created_at?: string
+          document_request_id: string
+          expiration_date?: string | null
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          id?: string
+          status?: Database["public"]["Enums"]["doc_status"]
+          uploaded_at?: string
+          uploaded_via?: string
+          version: number
+          workspace_id: string
+        }
+        Update: {
+          content_type?: string | null
+          created_at?: string
+          document_request_id?: string
+          expiration_date?: string | null
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          id?: string
+          status?: Database["public"]["Enums"]["doc_status"]
+          uploaded_at?: string
+          uploaded_via?: string
+          version?: number
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_versions_document_request_id_fkey"
+            columns: ["document_request_id"]
+            isOneToOne: false
+            referencedRelation: "document_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "document_versions_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
@@ -259,6 +409,85 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "integration_connections_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_jobs: {
+        Row: {
+          attempts: number
+          canceled_at: string | null
+          created_at: string
+          created_by: string | null
+          dedupe_key: string
+          document_request_id: string | null
+          id: string
+          kind: string
+          last_error: string | null
+          recipient_email: string | null
+          scheduled_for: string
+          sent_at: string | null
+          status: string
+          updated_at: string
+          upload_link_id: string | null
+          workspace_id: string
+        }
+        Insert: {
+          attempts?: number
+          canceled_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          dedupe_key: string
+          document_request_id?: string | null
+          id?: string
+          kind?: string
+          last_error?: string | null
+          recipient_email?: string | null
+          scheduled_for?: string
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+          upload_link_id?: string | null
+          workspace_id: string
+        }
+        Update: {
+          attempts?: number
+          canceled_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          dedupe_key?: string
+          document_request_id?: string | null
+          id?: string
+          kind?: string
+          last_error?: string | null
+          recipient_email?: string | null
+          scheduled_for?: string
+          sent_at?: string | null
+          status?: string
+          updated_at?: string
+          upload_link_id?: string | null
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_jobs_document_request_id_fkey"
+            columns: ["document_request_id"]
+            isOneToOne: false
+            referencedRelation: "document_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_jobs_upload_link_id_fkey"
+            columns: ["upload_link_id"]
+            isOneToOne: false
+            referencedRelation: "upload_links"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_jobs_workspace_id_fkey"
             columns: ["workspace_id"]
             isOneToOne: false
             referencedRelation: "workspaces"
@@ -362,6 +591,7 @@ export type Database = {
           id: string
           planned_start_date: string | null
           project_id: string
+          scheduled_end_date: string | null
           subcontractor_id: string
           workspace_id: string
         }
@@ -370,6 +600,7 @@ export type Database = {
           id?: string
           planned_start_date?: string | null
           project_id: string
+          scheduled_end_date?: string | null
           subcontractor_id: string
           workspace_id: string
         }
@@ -378,6 +609,7 @@ export type Database = {
           id?: string
           planned_start_date?: string | null
           project_id?: string
+          scheduled_end_date?: string | null
           subcontractor_id?: string
           workspace_id?: string
         }
@@ -413,6 +645,7 @@ export type Database = {
           end_date: string | null
           id: string
           location: string | null
+          manager_user_id: string | null
           name: string
           start_date: string | null
           status: Database["public"]["Enums"]["project_status"]
@@ -426,6 +659,7 @@ export type Database = {
           end_date?: string | null
           id?: string
           location?: string | null
+          manager_user_id?: string | null
           name: string
           start_date?: string | null
           status?: Database["public"]["Enums"]["project_status"]
@@ -439,6 +673,7 @@ export type Database = {
           end_date?: string | null
           id?: string
           location?: string | null
+          manager_user_id?: string | null
           name?: string
           start_date?: string | null
           status?: Database["public"]["Enums"]["project_status"]
@@ -556,6 +791,116 @@ export type Database = {
           },
         ]
       }
+      upload_link_items: {
+        Row: {
+          created_at: string
+          document_request_id: string
+          id: string
+          upload_link_id: string
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          document_request_id: string
+          id?: string
+          upload_link_id: string
+          workspace_id: string
+        }
+        Update: {
+          created_at?: string
+          document_request_id?: string
+          id?: string
+          upload_link_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upload_link_items_document_request_id_fkey"
+            columns: ["document_request_id"]
+            isOneToOne: false
+            referencedRelation: "document_requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upload_link_items_upload_link_id_fkey"
+            columns: ["upload_link_id"]
+            isOneToOne: false
+            referencedRelation: "upload_links"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upload_link_items_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      upload_links: {
+        Row: {
+          audience: string
+          created_at: string
+          created_by: string
+          expires_at: string
+          id: string
+          last_opened_at: string | null
+          project_id: string | null
+          revoked_at: string | null
+          subcontractor_id: string
+          token_hash: string
+          workspace_id: string
+        }
+        Insert: {
+          audience?: string
+          created_at?: string
+          created_by: string
+          expires_at: string
+          id?: string
+          last_opened_at?: string | null
+          project_id?: string | null
+          revoked_at?: string | null
+          subcontractor_id: string
+          token_hash: string
+          workspace_id: string
+        }
+        Update: {
+          audience?: string
+          created_at?: string
+          created_by?: string
+          expires_at?: string
+          id?: string
+          last_opened_at?: string | null
+          project_id?: string | null
+          revoked_at?: string | null
+          subcontractor_id?: string
+          token_hash?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "upload_links_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upload_links_subcontractor_id_fkey"
+            columns: ["subcontractor_id"]
+            isOneToOne: false
+            referencedRelation: "subcontractors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "upload_links_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -636,22 +981,28 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          is_demo: boolean
           name: string
           owner_user_id: string
+          timezone: string
           updated_at: string
         }
         Insert: {
           created_at?: string
           id?: string
+          is_demo?: boolean
           name: string
           owner_user_id: string
+          timezone?: string
           updated_at?: string
         }
         Update: {
           created_at?: string
           id?: string
+          is_demo?: boolean
           name?: string
           owner_user_id?: string
+          timezone?: string
           updated_at?: string
         }
         Relationships: []
