@@ -1134,8 +1134,17 @@ export const completeOnboarding = createServerFn({ method: "POST" })
           next_reminder_at: nextReminder.toISOString(),
         })),
       )
-      .select("id, doc_type, token");
+      .select("id, doc_type");
     if (requestError || !created) throw new Error("Could not create the first document requests.");
+
+    // One secure link collects every document for this subcontractor.
+    const firstLink = await createUploadLinkFor(context.supabase, {
+      workspaceId,
+      subcontractorId: sub.id,
+      projectId: project.id,
+      createdBy: context.userId,
+      requestIds: created.map((row) => row.id),
+    });
 
     if (data.contactEmail) {
       await context.supabase.from("reminder_events").insert(
