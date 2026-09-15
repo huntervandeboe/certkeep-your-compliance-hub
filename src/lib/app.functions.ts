@@ -456,10 +456,19 @@ export const createDocumentRequest = createServerFn({ method: "POST" })
         last_requested_at: now.toISOString(),
         next_reminder_at: nextReminder.toISOString(),
       })
-      .select("id, token")
+      .select("id")
       .single();
 
     if (error || !row) throw new Error("Could not create that request.");
+
+    const link = await createUploadLinkFor(context.supabase, {
+      workspaceId: membership.workspace_id,
+      subcontractorId: data.subcontractorId,
+      projectId: data.projectId ?? null,
+      createdBy: context.userId,
+      requestIds: [row.id],
+    });
+
     const { data: sub } = await context.supabase
       .from("subcontractors")
       .select("company, contact_email")
@@ -474,6 +483,17 @@ export const createDocumentRequest = createServerFn({ method: "POST" })
         scheduled_for: nextReminder.toISOString(),
         created_by: context.userId,
       });
+      await context.supabase.from("notification_jobs").insert({
+        workspace_id: membership.workspace_id,
+        document_request_id: row.id,
+        upload_link_id: link.linkId,
+        kind: "reminder",
+        recipient_email: sub.contact_email,
+        status: "scheduled",
+        scheduled_for: nextReminder.toISOString(),
+        dedupe_key: `${row.id}:reminder:${nextReminder.toISOString().slice(0, 10)}`,
+        created_by: context.userId,
+      });
     }
     await context.supabase.from("activity_events").insert({
       workspace_id: membership.workspace_id,
@@ -484,7 +504,7 @@ export const createDocumentRequest = createServerFn({ method: "POST" })
       title: `Requested ${data.docType} from ${sub?.company ?? "subcontractor"}`,
       detail: "Secure upload link created",
     });
-    return { id: row.id, token: row.token };
+    return { id: row.id, token: link.token };
   });
 
 export const bulkCreateDocumentRequests = createServerFn({ method: "POST" })
