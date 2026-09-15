@@ -2,6 +2,11 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import {
+  isInsuranceDocType,
+  isRestrictedDocType,
+  requiresExpirationDate,
+} from "@/lib/domain/status";
 
 const BUCKET = "compliance-docs";
 
