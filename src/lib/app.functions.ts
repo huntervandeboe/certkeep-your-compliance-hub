@@ -69,6 +69,71 @@ function safeName(name: string) {
   return name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(-80);
 }
 
+/** Links are stored as hashes; the raw code only ever lives in the URL we hand out. */
+export async function hashToken(token: string) {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token));
+  return Array.from(new Uint8Array(digest))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+const LINK_TTL_DAYS = 21;
+
+type LinkClient = {
+  from: (table: string) => {
+    insert: (rows: unknown) => {
+      select: (cols: string) => { single: () => Promise<{ data: { id: string } | null }> };
+    };
+  };
+};
+
+/** Creates one scoped upload link covering the given document requests. */
+async function createUploadLinkFor(
+  client: unknown,
+  input: {
+    workspaceId: string;
+    subcontractorId: string;
+    projectId?: string | null;
+    createdBy: string;
+    requestIds: string[];
+    audience?: "subcontractor" | "broker";
+    expiresAt?: Date;
+  },
+) {
+  const supabase = client as LinkClient;
+  const raw = randomToken();
+  const expires =
+    input.expiresAt ?? new Date(Date.now() + LINK_TTL_DAYS * 86400000);
+  const { data: link } = await supabase
+    .from("upload_links")
+    .insert({
+      workspace_id: input.workspaceId,
+      subcontractor_id: input.subcontractorId,
+      project_id: input.projectId ?? null,
+      token_hash: await hashToken(raw),
+      audience: input.audience ?? "subcontractor",
+      expires_at: expires.toISOString(),
+      created_by: input.createdBy,
+    })
+    .select("id")
+    .single();
+  if (!link) throw new Error("Could not create a secure upload link.");
+  await (
+    supabase as unknown as {
+      from: (t: string) => { insert: (rows: unknown) => Promise<unknown> };
+    }
+  )
+    .from("upload_link_items")
+    .insert(
+      input.requestIds.map((requestId) => ({
+        workspace_id: input.workspaceId,
+        upload_link_id: link.id,
+        document_request_id: requestId,
+      })),
+    );
+  return { token: raw, linkId: link.id, expiresAt: expires.toISOString() };
+}
+
 /* ------------------------------------------------------------------ */
 /* Contractor-side (authenticated)                                     */
 /* ------------------------------------------------------------------ */
