@@ -549,8 +549,23 @@ export const bulkCreateDocumentRequests = createServerFn({ method: "POST" })
     const { data: created, error } = await context.supabase
       .from("document_requests")
       .insert(rows)
-      .select("id, subcontractor_id, token");
+      .select("id, subcontractor_id");
     if (error || !created) throw new Error("Could not create those requests.");
+
+    const links = await Promise.all(
+      created.map(async (request) => ({
+        subcontractorId: request.subcontractor_id,
+        requestId: request.id,
+        ...(await createUploadLinkFor(context.supabase, {
+          workspaceId: membership.workspace_id,
+          subcontractorId: request.subcontractor_id,
+          projectId: data.projectId ?? null,
+          createdBy: context.userId,
+          requestIds: [request.id],
+        })),
+      })),
+    );
+
     const reminders = created.flatMap((request) => {
       const sub = subs.find((item) => item.id === request.subcontractor_id);
       return sub?.contact_email
@@ -577,7 +592,7 @@ export const bulkCreateDocumentRequests = createServerFn({ method: "POST" })
     });
     return {
       created: created.length,
-      links: created.map((item) => ({ subcontractorId: item.subcontractor_id, token: item.token })),
+      links: links.map((item) => ({ subcontractorId: item.subcontractorId, token: item.token })),
     };
   });
 
