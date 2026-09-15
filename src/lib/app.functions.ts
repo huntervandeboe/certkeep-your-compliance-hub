@@ -804,49 +804,115 @@ export const getDocumentUrl = createServerFn({ method: "POST" })
 
 const tokenInput = z.object({ token: z.string().trim().min(20).max(120) });
 
-async function loadByToken(token: string) {
+const ALLOWED_UPLOAD_TYPES = ["image/jpeg", "image/png", "image/heic", "image/webp", "application/pdf"];
+const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
+
+/** Resolves a raw link code to its stored hash, then to the documents it may collect. */
+async function loadLink(token: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { data } = await supabaseAdmin
-    .from("document_requests")
-    .select("id, doc_type, notes, status, token_expires_at, subcontractor_id")
-    .eq("token", token)
+  const { data: link } = await supabaseAdmin
+    .from("upload_links")
+    .select("id, workspace_id, subcontractor_id, project_id, audience, expires_at, revoked_at")
+    .eq("token_hash", await hashToken(token))
     .maybeSingle();
-  return { supabaseAdmin, request: data };
+  if (!link) return { supabaseAdmin, link: null, requests: [] as RequestRow[] };
+
+  const { data: items } = await supabaseAdmin
+    .from("upload_link_items")
+    .select(
+      "document_requests(id, doc_type, notes, status, rejection_reason, due_date, current_version)",
+    )
+    .eq("upload_link_id", link.id);
+
+  const requests = (items ?? [])
+    .map((item) => (item as { document_requests: RequestRow | null }).document_requests)
+    .filter((row): row is RequestRow => Boolean(row))
+    // Broker links only ever expose insurance certificates.
+    .filter((row) => link.audience !== "broker" || isInsuranceDocType(row.doc_type));
+
+  return { supabaseAdmin, link, requests };
+}
+
+type RequestRow = {
+  id: string;
+  doc_type: string;
+  notes: string | null;
+  status: DocStatus;
+  rejection_reason: string | null;
+  due_date: string | null;
+  current_version: number;
+};
+
+function linkState(link: { expires_at: string; revoked_at: string | null } | null) {
+  if (!link) return "invalid" as const;
+  if (link.revoked_at) return "revoked" as const;
+  if (new Date(link.expires_at) < new Date()) return "expired" as const;
+  return "ok" as const;
 }
 
 export const getUploadRequest = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => tokenInput.parse(d))
   .handler(async ({ data }) => {
-    const { supabaseAdmin, request } = await loadByToken(data.token);
-    if (!request) return { state: "invalid" as const };
-    if (new Date(request.token_expires_at) < new Date()) return { state: "expired" as const };
+    const { supabaseAdmin, link, requests } = await loadLink(data.token);
+    const state = linkState(link);
+    if (state !== "ok" || !link) return { state };
 
-    const { data: sub } = await supabaseAdmin
-      .from("subcontractors")
-      .select("company")
-      .eq("id", request.subcontractor_id)
-      .maybeSingle();
+    const [{ data: sub }, { data: workspace }, { data: project }] = await Promise.all([
+      supabaseAdmin
+        .from("subcontractors")
+        .select("company")
+        .eq("id", link.subcontractor_id)
+        .maybeSingle(),
+      supabaseAdmin.from("workspaces").select("name").eq("id", link.workspace_id).maybeSingle(),
+      link.project_id
+        ? supabaseAdmin.from("projects").select("name").eq("id", link.project_id).maybeSingle()
+        : Promise.resolve({ data: null }),
+    ]);
+
+    await supabaseAdmin
+      .from("upload_links")
+      .update({ last_opened_at: new Date().toISOString() })
+      .eq("id", link.id);
 
     return {
       state: "ok" as const,
-      docType: request.doc_type,
-      notes: request.notes,
-      status: request.status as DocStatus,
       company: sub?.company ?? "",
+      requestedBy: workspace?.name ?? "the general contractor",
+      projectName: project?.name ?? null,
+      audience: link.audience as "subcontractor" | "broker",
+      expiresAt: link.expires_at,
+      items: requests.map((row) => ({
+        id: row.id,
+        docType: row.doc_type,
+        notes: row.notes,
+        status: row.status,
+        dueDate: row.due_date,
+        changesRequested: row.status === "rejected" ? row.rejection_reason : null,
+        needsExpirationDate: requiresExpirationDate(row.doc_type),
+      })),
     };
   });
 
 export const createUploadTarget = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
-    tokenInput.extend({ fileName: z.string().trim().min(1).max(160) }).parse(d),
+    tokenInput
+      .extend({
+        requestId: z.string().uuid(),
+        fileName: z.string().trim().min(1).max(160),
+        fileSize: z.number().int().positive().max(MAX_UPLOAD_BYTES, "That file is larger than 25 MB."),
+        contentType: z.string().trim().min(1).max(120),
+      })
+      .parse(d),
   )
   .handler(async ({ data }) => {
-    const { supabaseAdmin, request } = await loadByToken(data.token);
-    if (!request) throw new Error("This link is no longer valid.");
-    if (new Date(request.token_expires_at) < new Date())
-      throw new Error("This link has expired. Ask for a new one.");
+    const { supabaseAdmin, link, requests } = await loadLink(data.token);
+    if (linkState(link) !== "ok") throw new Error("This link is no longer valid.");
+    if (!requests.some((row) => row.id === data.requestId))
+      throw new Error("That document is not part of this request.");
+    if (!ALLOWED_UPLOAD_TYPES.includes(data.contentType))
+      throw new Error("Upload a JPG, PNG or PDF.");
 
-    const path = `${request.id}/${Date.now()}-${safeName(data.fileName)}`;
+    const path = `${data.requestId}/${Date.now()}-${safeName(data.fileName)}`;
     const { data: signed, error } = await supabaseAdmin.storage
       .from(BUCKET)
       .createSignedUploadUrl(path);
@@ -859,18 +925,46 @@ export const submitUpload = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) =>
     tokenInput
       .extend({
+        requestId: z.string().uuid(),
         path: z.string().trim().min(1).max(300),
         fileName: z.string().trim().min(1).max(160),
-        expirationDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Enter the expiration date"),
+        fileSize: z.number().int().positive().max(MAX_UPLOAD_BYTES).optional(),
+        contentType: z.string().trim().max(120).optional(),
+        expirationDate: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .optional()
+          .or(z.literal("")),
       })
       .parse(d),
   )
   .handler(async ({ data }) => {
-    const { supabaseAdmin, request } = await loadByToken(data.token);
-    if (!request) throw new Error("This link is no longer valid.");
-    if (new Date(request.token_expires_at) < new Date())
-      throw new Error("This link has expired. Ask for a new one.");
+    const { supabaseAdmin, link, requests } = await loadLink(data.token);
+    if (linkState(link) !== "ok" || !link) throw new Error("This link is no longer valid.");
+    const request = requests.find((row) => row.id === data.requestId);
+    if (!request) throw new Error("That document is not part of this request.");
     if (!data.path.startsWith(`${request.id}/`)) throw new Error("Invalid upload.");
+    if (requiresExpirationDate(request.doc_type) && !data.expirationDate)
+      throw new Error("Enter the expiration date shown on the document.");
+
+    const now = new Date().toISOString();
+    const nextVersion = (request.current_version ?? 0) + 1;
+
+    // A replacement upload is a new version and never inherits the old approval.
+    const { error: versionError } = await supabaseAdmin.from("document_versions").insert({
+      workspace_id: link.workspace_id,
+      document_request_id: request.id,
+      version: nextVersion,
+      file_path: data.path,
+      file_name: data.fileName,
+      file_size: data.fileSize ?? null,
+      content_type: data.contentType ?? null,
+      expiration_date: data.expirationDate || null,
+      status: "submitted",
+      uploaded_via: "link",
+      uploaded_at: now,
+    });
+    if (versionError) throw new Error("We could not save your document. Please try again.");
 
     const { error } = await supabaseAdmin
       .from("document_requests")
@@ -878,15 +972,34 @@ export const submitUpload = createServerFn({ method: "POST" })
         status: "submitted",
         file_path: data.path,
         file_name: data.fileName,
-        expiration_date: data.expirationDate,
-        submitted_at: new Date().toISOString(),
+        expiration_date: data.expirationDate || null,
+        submitted_at: now,
         rejection_reason: null,
         reviewed_at: null,
+        resolved_at: null,
+        current_version: nextVersion,
       })
       .eq("id", request.id);
 
     if (error) throw new Error("We could not save your document. Please try again.");
-    return { ok: true as const };
+
+    // Stop chasing while this item is waiting on the contractor's review.
+    await supabaseAdmin
+      .from("notification_jobs")
+      .update({ status: "paused" })
+      .eq("document_request_id", request.id)
+      .eq("status", "scheduled");
+
+    await supabaseAdmin.from("activity_events").insert({
+      workspace_id: link.workspace_id,
+      event_type: "document.submitted",
+      entity_type: "document_request",
+      entity_id: request.id,
+      title: `${request.doc_type} uploaded`,
+      detail: `Version ${nextVersion} received through a secure link`,
+    });
+
+    return { ok: true as const, version: nextVersion };
   });
 
 /* ------------------------------------------------------------------ */
