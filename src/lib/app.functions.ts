@@ -107,8 +107,7 @@ async function createUploadLinkFor(
 ) {
   const supabase = client as LinkClient;
   const raw = randomToken();
-  const expires =
-    input.expiresAt ?? new Date(Date.now() + LINK_TTL_DAYS * 86400000);
+  const expires = input.expiresAt ?? new Date(Date.now() + LINK_TTL_DAYS * 86400000);
   const { data: link } = await supabase
     .from("upload_links")
     .insert({
@@ -761,7 +760,10 @@ export const reviewDocumentRequest = createServerFn({ method: "POST" })
     // Approved items stop chasing; rejected items start chasing again.
     await context.supabase
       .from("notification_jobs")
-      .update({ status: approved ? "canceled" : "scheduled", canceled_at: approved ? decidedAt : null })
+      .update({
+        status: approved ? "canceled" : "scheduled",
+        canceled_at: approved ? decidedAt : null,
+      })
       .eq("document_request_id", data.id)
       .in("status", ["scheduled", "paused"]);
 
@@ -839,7 +841,13 @@ export const getDocumentUrl = createServerFn({ method: "POST" })
 
 const tokenInput = z.object({ token: z.string().trim().min(20).max(120) });
 
-const ALLOWED_UPLOAD_TYPES = ["image/jpeg", "image/png", "image/heic", "image/webp", "application/pdf"];
+const ALLOWED_UPLOAD_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/heic",
+  "image/webp",
+  "application/pdf",
+];
 const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
 
 /** Resolves a raw link code to its stored hash, then to the documents it may collect. */
@@ -934,7 +942,11 @@ export const createUploadTarget = createServerFn({ method: "POST" })
       .extend({
         requestId: z.string().uuid(),
         fileName: z.string().trim().min(1).max(160),
-        fileSize: z.number().int().positive().max(MAX_UPLOAD_BYTES, "That file is larger than 25 MB."),
+        fileSize: z
+          .number()
+          .int()
+          .positive()
+          .max(MAX_UPLOAD_BYTES, "That file is larger than 25 MB."),
         contentType: z.string().trim().min(1).max(120),
       })
       .parse(d),

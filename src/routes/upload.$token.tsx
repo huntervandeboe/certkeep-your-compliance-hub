@@ -98,7 +98,9 @@ function UploadPage() {
   }
 
   const items = data.items as Item[];
-  const outstanding = items.filter((item) => item.status === "pending" || item.status === "rejected");
+  const outstanding = items.filter(
+    (item) => item.status === "pending" || item.status === "rejected",
+  );
   const active = items.find((item) => item.id === activeId) ?? null;
 
   if (active) {
@@ -148,10 +150,7 @@ function UploadPage() {
 
       <ul className="mt-4 space-y-2.5">
         {items.map((item) => (
-          <li
-            key={item.id}
-            className="rounded-xl border border-border px-3.5 py-3"
-          >
+          <li key={item.id} className="rounded-xl border border-border px-3.5 py-3">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-[15px] font-semibold text-ink">{item.docType}</p>
