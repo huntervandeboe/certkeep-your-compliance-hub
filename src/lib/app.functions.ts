@@ -672,56 +672,122 @@ export const reviewDocumentRequest = createServerFn({ method: "POST" })
     const membership = await ensureWorkspace(context);
     const { data: before } = await context.supabase
       .from("document_requests")
-      .select("doc_type, subcontractor_id")
+      .select("doc_type, subcontractor_id, project_id, requirement_id, current_version")
       .eq("id", data.id)
       .single();
+    if (!before) throw new Error("Request not found.");
+
+    const approved = data.action === "approve";
+    const decidedAt = new Date().toISOString();
     const { error } = await context.supabase
       .from("document_requests")
       .update({
-        status: data.action === "approve" ? "approved" : "rejected",
-        reviewed_at: new Date().toISOString(),
-        rejection_reason: data.action === "reject" ? data.reason || null : null,
+        status: approved ? "approved" : "rejected",
+        reviewed_at: decidedAt,
+        resolved_at: approved ? decidedAt : null,
+        rejection_reason: approved ? null : data.reason || null,
       })
       .eq("id", data.id)
       .eq("status", "submitted");
 
     if (error) throw new Error("Could not save that decision.");
-    if (before) {
-      const { data: sub } = await context.supabase
-        .from("subcontractors")
-        .select("company")
-        .eq("id", before.subcontractor_id)
-        .single();
-      await context.supabase.from("activity_events").insert({
+
+    // Record the decision against the exact version that was reviewed.
+    const { data: version } = await context.supabase
+      .from("document_versions")
+      .select("id")
+      .eq("document_request_id", data.id)
+      .order("version", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (version) {
+      await context.supabase
+        .from("document_versions")
+        .update({ status: approved ? "approved" : "rejected" })
+        .eq("id", version.id);
+      await context.supabase.from("document_reviews").insert({
         workspace_id: membership.workspace_id,
-        actor_user_id: context.userId,
-        event_type: `document.${data.action === "approve" ? "approved" : "correction_requested"}`,
-        entity_type: "document_request",
-        entity_id: data.id,
-        title: `${before.doc_type} ${data.action === "approve" ? "approved" : "sent back for correction"}`,
-        detail: sub?.company ?? null,
+        document_version_id: version.id,
+        document_request_id: data.id,
+        requirement_id: before.requirement_id,
+        project_id: before.project_id,
+        reviewer_user_id: context.userId,
+        decision: approved ? "approved" : "changes_requested",
+        reason: approved ? null : data.reason || null,
       });
     }
+
+    // Approved items stop chasing; rejected items start chasing again.
+    await context.supabase
+      .from("notification_jobs")
+      .update({ status: approved ? "canceled" : "scheduled", canceled_at: approved ? decidedAt : null })
+      .eq("document_request_id", data.id)
+      .in("status", ["scheduled", "paused"]);
+
+    const { data: sub } = await context.supabase
+      .from("subcontractors")
+      .select("company")
+      .eq("id", before.subcontractor_id)
+      .single();
+    await context.supabase.from("activity_events").insert({
+      workspace_id: membership.workspace_id,
+      actor_user_id: context.userId,
+      event_type: `document.${approved ? "approved" : "correction_requested"}`,
+      entity_type: "document_request",
+      entity_id: data.id,
+      title: `${before.doc_type} ${approved ? "approved" : "sent back for correction"}`,
+      detail: sub?.company ?? null,
+    });
     return { ok: true as const };
   });
 
 export const getDocumentUrl = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d: unknown) => z.object({ id: z.string().uuid() }).parse(d))
+  .inputValidator((d: unknown) =>
+    z.object({ id: z.string().uuid(), versionId: z.string().uuid().optional() }).parse(d),
+  )
   .handler(async ({ data, context }) => {
-    // RLS confirms the caller owns this request before we use admin storage access.
+    // RLS confirms the caller can see this request before we use admin storage access.
     const { data: row } = await context.supabase
       .from("document_requests")
-      .select("file_path")
+      .select("file_path, doc_type, workspace_id")
       .eq("id", data.id)
       .maybeSingle();
 
-    if (!row?.file_path) throw new Error("There is no document on this request yet.");
+    if (!row) throw new Error("Request not found.");
+
+    // Tax documents are limited to workspace owners and admins.
+    if (isRestrictedDocType(row.doc_type)) {
+      const { data: membership } = await context.supabase
+        .from("workspace_members")
+        .select("role")
+        .eq("workspace_id", row.workspace_id ?? "")
+        .eq("user_id", context.userId)
+        .eq("status", "active")
+        .maybeSingle();
+      if (!membership || !["owner", "admin"].includes(membership.role)) {
+        throw new Error("Only workspace owners and admins can open W-9 documents.");
+      }
+    }
+
+    let filePath = row.file_path;
+    if (data.versionId) {
+      const { data: version } = await context.supabase
+        .from("document_versions")
+        .select("file_path")
+        .eq("id", data.versionId)
+        .eq("document_request_id", data.id)
+        .maybeSingle();
+      filePath = version?.file_path ?? null;
+    }
+
+    if (!filePath) throw new Error("There is no document on this request yet.");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: signed, error } = await supabaseAdmin.storage
       .from(BUCKET)
-      .createSignedUrl(row.file_path, 60 * 10);
+      .createSignedUrl(filePath, 60 * 10);
 
     if (error || !signed) throw new Error("Could not open that document.");
     return { url: signed.signedUrl };
