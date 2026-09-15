@@ -1173,6 +1173,11 @@ export const completeOnboarding = createServerFn({ method: "POST" })
       projectId: project.id,
       subcontractorId: sub.id,
       company: sub.company,
-      links: created.map((row) => ({ id: row.id, docType: row.doc_type, token: row.token })),
+      token: firstLink.token,
+      links: created.map((row) => ({
+        id: row.id,
+        docType: row.doc_type,
+        token: firstLink.token,
+      })),
     };
   });
