@@ -16,3 +16,7 @@
 - [x] Replace first-use empty states with guided project, subcontractor, and request actions
 - [x] Add public Starter pricing plus account, billing, and invoice pages
 - [ ] Enable checkout when the owner is ready to activate payments
+- [x] Stage 1: document versions, review records, hashed secure links, notification jobs, W-9 access limits
+- [ ] Stage 2: review inbox rebuilt on versions + requests screen
+- [ ] Stage 3: Today screen, project readiness, reminder rules
+- [ ] Stage 4: onboarding CSV import, navigation rename, demo workspace + switcher
